@@ -1,5 +1,6 @@
 package com.dik.videoedit.videoeditor
 
+import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.Project
 import java.util.UUID
@@ -40,5 +41,84 @@ object ProjectOps {
         val item = list.removeAt(index)
         list.add(target, item)
         return p.copy(clips = list)
+    }
+
+    // ---- audio ---------------------------------------------------------------------------------
+
+    const val MIN_AUDIO_MS = 300L
+    const val MAX_AUDIO_TRACKS = 8
+
+    /** Posisi awal klip ke-[index] di timeline (ms). */
+    fun clipStartMs(p: Project, index: Int): Long = p.clips.take(index).sumOf { it.effectiveMs }
+
+    /** Posisi awal tiap klip di timeline. */
+    fun clipStarts(clips: List<Clip>): List<Long> {
+        var acc = 0L
+        return clips.map { val s = acc; acc += it.effectiveMs; s }
+    }
+
+    /** Fade tidak boleh lebih panjang dari separuh klip audio. */
+    private fun fit(a: AudioTrack): AudioTrack {
+        val half = a.durationMs / 2
+        return a.copy(fadeInMs = a.fadeInMs.coerceIn(0L, half), fadeOutMs = a.fadeOutMs.coerceIn(0L, half))
+    }
+
+    fun updateAudio(p: Project, id: String, change: (AudioTrack) -> AudioTrack): Project =
+        p.copy(audio = p.audio.map { if (it.id == id) fit(change(it)) else it })
+
+    /** Atur titik potong dan posisi sekaligus; semua nilai dijepit ke rentang yang valid. */
+    fun trimAudio(p: Project, id: String, startMs: Long, trimStartMs: Long, trimEndMs: Long): Project =
+        updateAudio(p, id) {
+            val minLen = minOf(MIN_AUDIO_MS, it.sourceDurationMs)
+            val s = trimStartMs.coerceIn(0L, it.sourceDurationMs - minLen)
+            val e = trimEndMs.coerceIn(s + minLen, it.sourceDurationMs)
+            it.copy(startMs = startMs.coerceAtLeast(0L), trimStartMs = s, trimEndMs = e)
+        }
+
+    fun moveAudio(p: Project, id: String, startMs: Long): Project =
+        updateAudio(p, id) { it.copy(startMs = startMs.coerceAtLeast(0L)) }
+
+    fun removeAudio(p: Project, id: String): Project = p.copy(audio = p.audio.filterNot { it.id == id })
+
+    /** Membagi klip audio pada posisi timeline [atMs]; null bila terlalu dekat ke tepi klip. */
+    fun splitAudio(p: Project, id: String, atMs: Long): Project? {
+        val a = p.audio.firstOrNull { it.id == id } ?: return null
+        val rel = atMs - a.startMs
+        if (rel < MIN_AUDIO_MS || rel > a.durationMs - MIN_AUDIO_MS) return null
+        val cut = a.trimStartMs + (rel * a.speed).toLong()
+        val first = fit(a.copy(id = UUID.randomUUID().toString(), trimEndMs = cut, fadeOutMs = 0L))
+        val second = fit(a.copy(id = UUID.randomUUID().toString(), startMs = a.startMs + rel, trimStartMs = cut, fadeInMs = 0L))
+        val list = p.audio.toMutableList()
+        val i = list.indexOfFirst { it.id == id }
+        list[i] = first
+        list.add(i + 1, second)
+        return p.copy(audio = list)
+    }
+
+    /** Salinan klip audio yang diletakkan tepat setelah aslinya. */
+    fun duplicateAudio(p: Project, id: String): Pair<Project, AudioTrack>? {
+        val a = p.audio.firstOrNull { it.id == id } ?: return null
+        val copy = a.copy(id = UUID.randomUUID().toString(), startMs = a.endMs)
+        return p.copy(audio = p.audio + copy) to copy
+    }
+
+    /**
+     * Menyusun klip audio ke baris (lane): klip yang tumpang tindih dipindah ke baris di bawahnya.
+     * @return peta id -> nomor baris (mulai 0) dan jumlah baris.
+     */
+    fun assignLanes(audio: List<AudioTrack>): Pair<Map<String, Int>, Int> {
+        val laneEnds = mutableListOf<Long>()
+        val result = HashMap<String, Int>()
+        for (t in audio.sortedWith(compareBy({ it.startMs }, { it.id }))) {
+            var lane = laneEnds.indexOfFirst { it <= t.startMs }
+            if (lane < 0) {
+                laneEnds.add(t.endMs)
+                lane = laneEnds.lastIndex
+            } else {
+                laneEnds[lane] = t.endMs
+            }
+            result[t.id] = lane
+        }
+        return result to laneEnds.size
     }
 }

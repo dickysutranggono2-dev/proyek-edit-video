@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import com.dik.videoedit.models.Clip
-import com.dik.videoedit.models.MusicTrack
+import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.videoprocessing.VideoProbe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,7 +26,7 @@ object Importer {
         VideoResult(clips, failed)
     }
 
-    suspend fun importAudio(context: Context, uri: Uri): MusicTrack? = withContext(Dispatchers.IO) {
+    suspend fun importAudio(context: Context, uri: Uri): AudioTrack? = withContext(Dispatchers.IO) {
         persistAccess(context, uri)
         VideoProbe.probeAudio(context, uri)
     }

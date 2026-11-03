@@ -23,19 +23,27 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterVintage
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VerticalSplit
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,9 +70,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import android.net.Uri
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.videoFrameMillis
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -81,7 +95,10 @@ import androidx.media3.ui.PlayerView
 import com.dik.videoedit.LocalAppContainer
 import com.dik.videoedit.components.PremiumDialog
 import com.dik.videoedit.components.Timeline
+import com.dik.videoedit.components.TrimPreview
 import com.dik.videoedit.components.rememberPremiumStatus
+import com.dik.videoedit.models.AspectOption
+import com.dik.videoedit.models.Focus
 import com.dik.videoedit.models.Project
 import com.dik.videoedit.videoeditor.PreviewController
 import com.dik.videoedit.videoeditor.formatTime
@@ -89,7 +106,9 @@ import com.dik.videoedit.videoprocessing.TextFit
 import com.dik.videoedit.viewmodels.EditorViewModel
 import kotlinx.coroutines.delay
 
-enum class Tool { TRIM, CROP, SPEED, MUSIC, TEXT, FILTER, EFFECT }
+enum class Tool { CROP, SPEED, CLIP_VOLUME, AUDIO_VOLUME, AUDIO_FADE, TEXT, FILTER, EFFECT }
+
+private class ToolItem(val label: String, val icon: ImageVector, val enabled: Boolean = true, val onClick: () -> Unit)
 
 @Composable
 fun EditorScreen(projectId: String, onBack: () -> Unit, onExport: () -> Unit) {
@@ -131,21 +150,34 @@ private fun EditorContent(
     val controller = remember { PreviewController(context) }
     DisposableEffect(controller) { onDispose { controller.release() } }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { controller.pause() }
-    LaunchedEffect(project) { controller.update(project) }
+    val posState = remember { mutableLongStateOf(0L) }
+    var scrubbing by remember { mutableStateOf(false) }
+    var trimPreview by remember { mutableStateOf<TrimPreview?>(null) }
+
+    // Sinkronkan preview dengan proyek, lalu lompat ke posisi yang diminta (mis. setelah trim/pisah).
+    LaunchedEffect(project, ui.pendingSeekMs) {
+        controller.update(project)
+        val seek = ui.pendingSeekMs
+        if (seek != null) {
+            controller.seekToGlobal(seek)
+            posState.longValue = seek
+            vm.consumeSeek()
+        }
+    }
 
     // Posisi putar (diperbarui berkala; ringan).
-    var globalMs by remember { mutableLongStateOf(0L) }
     var playingIndex by remember { mutableIntStateOf(0) }
     var isPlaying by remember { mutableStateOf(false) }
     LaunchedEffect(controller) {
         while (true) {
             controller.syncClipParams()
             isPlaying = controller.player.isPlaying
-            globalMs = controller.globalMs()
+            if (!scrubbing) posState.longValue = controller.globalMs()
+            controller.syncAudio(posState.longValue, isPlaying)
             val idx = controller.player.currentMediaItemIndex
             if (isPlaying && idx != playingIndex) vm.select(idx)
             playingIndex = idx
-            delay(100)
+            delay(40)
         }
     }
 
@@ -164,7 +196,7 @@ private fun EditorContent(
         if (uris.isNotEmpty()) vm.addClips(uris)
     }
     val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) vm.setMusic(uri)
+        if (uri != null) vm.addAudio(uri, posState.longValue)
     }
     val launchAddVideo = { addVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) }
     val launchPickAudio = { pickAudio.launch(arrayOf("audio/*")) }
@@ -209,7 +241,8 @@ private fun EditorContent(
                         modifier = Modifier.matchParentSize(),
                     )
                     TextOverlays(project)
-                    if (!isPlaying) {
+                    trimPreview?.let { TrimFrameOverlay(it, project.aspect != AspectOption.ORIGINAL) }
+                    if (!isPlaying && trimPreview == null) {
                         Box(
                             Modifier.align(Alignment.Center).size(64.dp).clip(CircleShape).background(Color(0x99000000)),
                             contentAlignment = Alignment.Center,
@@ -220,10 +253,7 @@ private fun EditorContent(
 
             // Waktu + kontrol
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Row(Modifier.weight(1f)) {
-                    Text(formatTime(globalMs), fontWeight = FontWeight.Bold)
-                    Text(" / ${formatTime(project.totalDurationMs)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                TimeLabel({ posState.longValue }, project.totalDurationMs, Modifier.weight(1f))
                 IconButton(onClick = { controller.togglePlay() }) {
                     Icon(if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (isPlaying) "Jeda" else "Putar", modifier = Modifier.size(30.dp))
                 }
@@ -235,31 +265,91 @@ private fun EditorContent(
 
             // Timeline
             Timeline(
-                project = project, selected = ui.selected, globalMs = globalMs,
-                onSelect = vm::select,
-                onSeek = { controller.seekToGlobal(it) },
+                project = project,
+                focus = ui.focus,
+                selectedClip = ui.selected,
+                selectedAudio = ui.selectedAudio,
+                positionMs = { posState.longValue },
+                onScrubStart = {
+                    scrubbing = true
+                    controller.pause()
+                    controller.setScrubbing(true)
+                },
+                onSeek = { ms ->
+                    posState.longValue = ms
+                    controller.seekToGlobal(ms)
+                },
+                onScrubEnd = {
+                    scrubbing = false
+                    controller.setScrubbing(false)
+                    controller.seekToGlobal(posState.longValue)
+                },
+                onSelectClip = { vm.focusClip(it) },
+                onSelectAudio = { vm.focusAudio(it) },
+                onClearFocus = { vm.clearFocus() },
+                onTrimClip = { index, startMs, endMs, rightEdge -> vm.trimClip(index, startMs, endMs, rightEdge) },
+                onTrimPreview = { trimPreview = it },
+                onMoveAudio = { id, startMs -> vm.moveAudio(id, startMs) },
+                onTrimAudio = { id, startMs, ts, te -> vm.trimAudio(id, startMs, ts, te) },
                 onAddClip = { launchAddVideo() },
-                onAddMusic = { tool = Tool.MUSIC },
+                onAddAudio = { launchPickAudio() },
             )
-            Spacer(Modifier.height(10.dp))
+            Text(
+                when (ui.focus) {
+                    Focus.NONE -> "Ketuk klip atau audio untuk memilih. Geser untuk menggulung, cubit untuk zoom."
+                    Focus.CLIP -> "Tarik handle putih di ujung klip untuk memotong."
+                    Focus.AUDIO -> "Geser audio untuk memindah. Tarik handle putih untuk memotong."
+                },
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+            )
 
-            // Toolbar
-            Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ToolTile("Potong", Icons.Filled.ContentCut, Modifier.weight(1f)) { tool = Tool.TRIM }
-                    ToolTile("Pisah", Icons.Filled.VerticalSplit, Modifier.weight(1f)) {
-                        val idx = controller.player.currentMediaItemIndex
-                        val clip = project.clips.getOrNull(idx)
-                        if (clip != null) vm.split(idx, clip.trimStartMs + controller.player.currentPosition)
-                    }
-                    ToolTile("Crop", Icons.Filled.Crop, Modifier.weight(1f)) { tool = Tool.CROP }
-                    ToolTile("Kecepatan", Icons.Filled.Speed, Modifier.weight(1f)) { tool = Tool.SPEED }
+            // Toolbar yang berubah sesuai pilihan (klip video / klip audio / tidak ada)
+            val selectedAudioTrack = project.audio.firstOrNull { it.id == ui.selectedAudio }
+            val splitNow: () -> Unit = {
+                if (ui.focus == Focus.AUDIO && selectedAudioTrack != null) {
+                    vm.splitAudio(selectedAudioTrack.id, posState.longValue)
+                } else {
+                    val idx = controller.player.currentMediaItemIndex
+                    val clip = project.clips.getOrNull(idx)
+                    if (clip != null) vm.split(idx, clip.trimStartMs + controller.player.currentPosition)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ToolTile("Musik", Icons.Filled.MusicNote, Modifier.weight(1f)) { tool = Tool.MUSIC }
-                    ToolTile("Teks", Icons.Filled.TextFields, Modifier.weight(1f)) { tool = Tool.TEXT }
-                    ToolTile("Filter", Icons.Filled.FilterVintage, Modifier.weight(1f)) { tool = Tool.FILTER }
-                    ToolTile("Efek", Icons.Filled.AutoAwesome, Modifier.weight(1f)) { tool = Tool.EFFECT }
+            }
+            val items: List<ToolItem> = when (ui.focus) {
+                Focus.CLIP -> listOf(
+                    ToolItem("Pisah", Icons.Filled.VerticalSplit, onClick = splitNow),
+                    ToolItem("Kecepatan", Icons.Filled.Speed) { tool = Tool.SPEED },
+                    ToolItem("Volume", Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.CLIP_VOLUME },
+                    ToolItem("Ekstrak Audio", Icons.Filled.GraphicEq) { vm.extractAudio(ui.selected) },
+                    ToolItem("Mundur", Icons.AutoMirrored.Filled.ArrowBack, enabled = ui.selected > 0) { vm.moveSelected(-1) },
+                    ToolItem("Maju", Icons.AutoMirrored.Filled.ArrowForward, enabled = ui.selected < project.clips.lastIndex) { vm.moveSelected(1) },
+                    ToolItem("Hapus", Icons.Filled.Delete, enabled = project.clips.size > 1) { vm.deleteSelected() },
+                )
+                Focus.AUDIO -> listOf(
+                    ToolItem("Pisah", Icons.Filled.VerticalSplit, onClick = splitNow),
+                    ToolItem("Volume", Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.AUDIO_VOLUME },
+                    ToolItem("Fade", Icons.Filled.Tune) { tool = Tool.AUDIO_FADE },
+                    ToolItem("Duplikat", Icons.Filled.ContentCopy) { selectedAudioTrack?.let { vm.duplicateAudio(it.id) } },
+                    ToolItem("Hapus", Icons.Filled.Delete) { selectedAudioTrack?.let { vm.removeAudio(it.id) } },
+                )
+                Focus.NONE -> listOf(
+                    ToolItem("Potong", Icons.Filled.ContentCut) { vm.focusClip(playingIndex) },
+                    ToolItem("Pisah", Icons.Filled.VerticalSplit, onClick = splitNow),
+                    ToolItem("Audio", Icons.Filled.MusicNote) { launchPickAudio() },
+                    ToolItem("Crop", Icons.Filled.Crop) { tool = Tool.CROP },
+                    ToolItem("Kecepatan", Icons.Filled.Speed) { tool = Tool.SPEED },
+                    ToolItem("Teks", Icons.Filled.TextFields) { tool = Tool.TEXT },
+                    ToolItem("Filter", Icons.Filled.FilterVintage) { tool = Tool.FILTER },
+                    ToolItem("Efek", Icons.Filled.AutoAwesome) { tool = Tool.EFFECT },
+                )
+            }
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp).padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items.forEach { item ->
+                    ToolTile(item.label, item.icon, Modifier.width(76.dp), item.enabled, item.onClick)
                 }
             }
         }
@@ -274,10 +364,11 @@ private fun EditorContent(
         ) {
             Column(Modifier.fillMaxWidth().imePadding().navigationBarsPadding().padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
                 when (t) {
-                    Tool.TRIM -> TrimPanel(vm, project, ui.selected)
                     Tool.CROP -> CropPanel(vm, project)
                     Tool.SPEED -> SpeedPanel(vm, project, ui.selected)
-                    Tool.MUSIC -> MusicPanel(vm, project, ui.selected, onPickAudio = { launchPickAudio() })
+                    Tool.CLIP_VOLUME -> ClipVolumePanel(vm, project, ui.selected)
+                    Tool.AUDIO_VOLUME -> project.audio.firstOrNull { it.id == ui.selectedAudio }?.let { AudioVolumePanel(vm, it) }
+                    Tool.AUDIO_FADE -> project.audio.firstOrNull { it.id == ui.selectedAudio }?.let { AudioFadePanel(vm, it) }
                     Tool.TEXT -> TextPanel(vm, project)
                     Tool.FILTER -> FilterPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
                     Tool.EFFECT -> EffectPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
@@ -306,17 +397,46 @@ private fun Modifier.aspectRatioCompat(ratio: Float, matchHeightFirst: Boolean =
     this.then(Modifier.aspectRatio(ratio, matchHeightFirst))
 
 @Composable
-private fun ToolTile(label: String, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
+private fun ToolTile(label: String, icon: ImageVector, modifier: Modifier, enabled: Boolean = true, onClick: () -> Unit) {
     Surface(
-        onClick = onClick, modifier = modifier.height(64.dp), shape = RoundedCornerShape(14.dp),
+        onClick = onClick, enabled = enabled, modifier = modifier.height(64.dp), shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surface, shadowElevation = 1.dp,
     ) {
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(
+            Modifier.fillMaxSize().alpha(if (enabled) 1f else 0.35f),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+        ) {
             Icon(icon, null, modifier = Modifier.size(24.dp))
             Spacer(Modifier.height(4.dp))
-            Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
         }
     }
+}
+
+/** Label waktu; membaca posisi di dalam composable ini sendiri agar hanya bagian ini yang digambar ulang. */
+@Composable
+private fun TimeLabel(position: () -> Long, totalMs: Long, modifier: Modifier) {
+    Row(modifier) {
+        Text(formatTime(position()), fontWeight = FontWeight.Bold)
+        Text(" / ${formatTime(totalMs)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** Frame video pada posisi handle trim, ditampilkan di atas preview selama handle ditarik. */
+@Composable
+private fun TrimFrameOverlay(preview: TrimPreview, crop: Boolean) {
+    val context = LocalContext.current
+    AsyncImage(
+        model = ImageRequest.Builder(context)
+            .data(Uri.parse(preview.uri))
+            .videoFrameMillis(preview.sourceMs)
+            .size(720)
+            .memoryCacheKey("${preview.uri}@${preview.sourceMs / 40L}@trim")
+            .build(),
+        contentDescription = null,
+        contentScale = if (crop) ContentScale.Crop else ContentScale.Fit,
+        modifier = Modifier.fillMaxSize().background(Color.Black),
+    )
 }
 
 /** Teks di preview digambar dengan Compose; ukuran & posisinya mengikuti rumus yang sama dengan export. */

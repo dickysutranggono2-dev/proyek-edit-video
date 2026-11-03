@@ -31,6 +31,7 @@ import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.ProgressHolder
 import androidx.media3.transformer.Transformer
 import androidx.media3.transformer.VideoEncoderSettings
+import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.Project
 import com.dik.videoedit.models.TextItem
@@ -107,17 +108,11 @@ class ExportEngine(private val context: Context) {
         val items = p.clips.mapIndexed { i, clip -> editedItem(p, clip, i, last) }
         val sequences = mutableListOf(EditedMediaItemSequence.Builder(items).build())
 
-        p.music?.let { m ->
-            // Musik dipotong sampai panjang video; bila lebih pendek, diulang (looping).
-            val endMs = min(p.totalDurationMs, m.durationMs)
-            val clipping = MediaItem.ClippingConfiguration.Builder().setEndPositionMs(endMs).build()
-            val musicItem = EditedMediaItem.Builder(
-                MediaItem.Builder().setUri(m.uri).setClippingConfiguration(clipping).build()
-            )
-                .setRemoveVideo(true)
-                .setEffects(Effects(listOfNotNull(volumeProcessor(m.volume)), emptyList()))
-                .build()
-            sequences += EditedMediaItemSequence.Builder(musicItem).setIsLooping(true).build()
+        // Setiap klip audio = satu sequence audio sendiri. Posisi awal di timeline dibuat dengan gap
+        // (jeda senyap) di depan klip, lalu Transformer mencampur semua sequence jadi satu audio.
+        val totalMs = p.totalDurationMs
+        p.audio.sortedBy { it.startMs }.forEach { a ->
+            audioSequence(a, totalMs)?.let { sequences += it }
         }
 
         val videoEffects = mutableListOf<Effect>()
@@ -168,6 +163,55 @@ class ExportEngine(private val context: Context) {
             )
         }
         return EditedMediaItem.Builder(media).setEffects(Effects(audio, video)).build()
+    }
+
+    /**
+     * Membuat sequence untuk satu klip audio, atau null bila klip berada di luar durasi video.
+     * Bagian audio yang melewati akhir video dipotong agar durasi hasil export tidak bertambah.
+     */
+    private fun audioSequence(a: AudioTrack, totalMs: Long): EditedMediaItemSequence? {
+        if (a.startMs >= totalMs - 50) return null
+        val room = totalMs - a.startMs
+        var durMs = a.durationMs
+        var trimEnd = a.trimEndMs
+        var fadeOutMs = a.fadeOutMs
+        if (durMs > room) {
+            durMs = room
+            trimEnd = a.trimStartMs + (room * a.speed).toLong()
+            fadeOutMs = 0L // audio terpotong oleh akhir video; fade-out milik ujung aslinya
+        }
+        if (trimEnd - a.trimStartMs < 50 || durMs < 50) return null
+
+        val clipping = MediaItem.ClippingConfiguration.Builder().apply {
+            if (a.trimStartMs > 0) setStartPositionMs(a.trimStartMs)
+            if (trimEnd < a.sourceDurationMs - 50) setEndPositionMs(trimEnd)
+        }.build()
+
+        val processors = mutableListOf<AudioProcessor>()
+        if (a.speed != 1f) {
+            processors += SonicAudioProcessor().apply {
+                setSpeed(a.speed)
+                setPitch(1f)
+            }
+        }
+        processors += GainFadeAudioProcessor(
+            volume = a.volume,
+            fadeInUs = a.fadeInMs * 1000,
+            fadeOutUs = fadeOutMs * 1000,
+            totalUs = durMs * 1000,
+        )
+
+        val item = EditedMediaItem.Builder(
+            MediaItem.Builder().setUri(a.uri).setClippingConfiguration(clipping).build()
+        )
+            .setRemoveVideo(true)
+            .setEffects(Effects(processors, emptyList()))
+            .build()
+
+        val builder = EditedMediaItemSequence.Builder()
+        if (a.startMs > 0) builder.addGap(a.startMs * 1000)
+        builder.addItem(item)
+        return builder.build()
     }
 
     /** Pengatur volume (0..1). Null bila volume 100% (tidak perlu diproses). */
@@ -223,7 +267,7 @@ class ExportEngine(private val context: Context) {
             "Perangkat gagal meng-encode video. Coba resolusi atau FPS yang lebih rendah."
 
         ExportException.ERROR_CODE_AUDIO_PROCESSING_FAILED ->
-            "Gagal memproses audio (musik atau volume). Coba hapus musik lalu export lagi."
+            "Gagal memproses audio (klip audio, volume, atau fade). Coba hapus klip audio terakhir yang ditambahkan lalu export lagi."
 
         else -> "Export gagal (${e.errorCodeName}). Coba lagi dengan resolusi lebih rendah."
     }

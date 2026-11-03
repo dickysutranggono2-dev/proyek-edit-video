@@ -4,39 +4,31 @@ import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
+import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.Project
 import com.dik.videoedit.videoprocessing.EffectsFactory
+import kotlin.math.abs
 
 /**
- * Preview memakai ExoPlayer: satu playlist berisi klip yang sudah di-trim, efek visual yang sama
- * dengan export, dan pemutar kedua untuk musik latar. Video tidak pernah dimuat penuh ke RAM.
+ * Preview memakai ExoPlayer: satu playlist berisi klip video yang sudah di-trim (dengan efek visual yang
+ * sama seperti export), ditambah satu pemutar audio untuk SETIAP klip audio. Pemutar audio dijalankan/dijeda
+ * oleh [syncAudio] mengikuti posisi playhead, sehingga posisi, trim, volume, dan fade sama dengan hasil export.
+ * Video tidak pernah dimuat penuh ke RAM.
  */
-class PreviewController(context: Context) {
+class PreviewController(private val context: Context) {
     val player: ExoPlayer = ExoPlayer.Builder(context).build()
-    private val musicPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
-        repeatMode = Player.REPEAT_MODE_ALL
+
+    private class AudioHolder(val player: ExoPlayer, var track: AudioTrack, var signature: String) {
+        var lastVolume = -1f
     }
+
+    private val audioPlayers = LinkedHashMap<String, AudioHolder>()
 
     private var clips: List<Clip> = emptyList()
     private var clipSignature = ""
     private var effectSignature: String? = null
-    private var musicUri: String? = null
-    private var hasMusic = false
-
-    init {
-        player.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (!hasMusic) return
-                if (isPlaying) {
-                    musicPlayer.seekTo(musicPositionFor(globalMs()))
-                    musicPlayer.play()
-                } else {
-                    musicPlayer.pause()
-                }
-            }
-        })
-    }
 
     /** Sinkronkan pemutar dengan proyek. Aman dipanggil berulang; hanya bekerja bila ada perubahan. */
     fun update(p: Project) {
@@ -72,20 +64,67 @@ class PreviewController(context: Context) {
             clipSignature = sig
         }
 
-        val m = p.music
-        hasMusic = m != null
-        if (m?.uri != musicUri) {
-            musicUri = m?.uri
-            if (m != null) {
-                musicPlayer.setMediaItem(MediaItem.fromUri(m.uri))
-                musicPlayer.prepare()
-            } else {
-                musicPlayer.stop()
-                musicPlayer.clearMediaItems()
+        updateAudio(p)
+    }
+
+    private fun updateAudio(p: Project) {
+        val wanted = p.audio.take(MAX_AUDIO_PLAYERS)
+        val ids = wanted.map { it.id }.toSet()
+        audioPlayers.keys.filter { it !in ids }.forEach { audioPlayers.remove(it)?.player?.release() }
+
+        for (t in wanted) {
+            val sig = "${t.uri}|${t.trimStartMs}|${t.trimEndMs}|${t.speed}"
+            val holder = audioPlayers.getOrPut(t.id) { AudioHolder(ExoPlayer.Builder(context).build(), t, "") }
+            if (holder.signature != sig) {
+                holder.player.setMediaItem(
+                    MediaItem.Builder()
+                        .setUri(t.uri)
+                        .setClippingConfiguration(
+                            MediaItem.ClippingConfiguration.Builder()
+                                .setStartPositionMs(t.trimStartMs)
+                                .setEndPositionMs(t.trimEndMs)
+                                .build()
+                        )
+                        .build()
+                )
+                holder.player.setPlaybackSpeed(t.speed)
+                holder.player.prepare()
+                holder.signature = sig
+            }
+            holder.track = t
+        }
+    }
+
+    /**
+     * Menjalankan/menjeda tiap pemutar audio sesuai posisi playhead [globalMs]. Dipanggil berkala dari UI.
+     * Pemutar audio hanya berbunyi saat video diputar dan playhead berada di dalam klip audio tersebut.
+     */
+    fun syncAudio(globalMs: Long, videoPlaying: Boolean) {
+        for (h in audioPlayers.values) {
+            val t = h.track
+            val rel = globalMs - t.startMs
+            val inRange = rel >= 0 && rel < t.durationMs
+
+            val volume = if (inRange) t.gainAt(rel).coerceIn(0f, 1f) else t.volume
+            if (abs(volume - h.lastVolume) > 0.005f) {
+                h.player.volume = volume
+                h.lastVolume = volume
+            }
+
+            if (videoPlaying && inRange) {
+                val srcPos = (rel * t.speed).toLong()
+                if (!h.player.playWhenReady) {
+                    h.player.seekTo(srcPos)
+                    h.player.play()
+                } else if (h.player.playbackState == Player.STATE_READY &&
+                    abs(h.player.currentPosition - srcPos) > DRIFT_MS
+                ) {
+                    h.player.seekTo(srcPos)
+                }
+            } else if (h.player.playWhenReady) {
+                h.player.pause()
             }
         }
-        musicPlayer.volume = m?.volume ?: 0f
-        if (!hasMusic || !player.isPlaying) musicPlayer.pause()
     }
 
     /** Kecepatan & volume bisa berbeda tiap klip; terapkan sesuai klip yang sedang diputar. */
@@ -93,6 +132,11 @@ class PreviewController(context: Context) {
         val c = clips.getOrNull(player.currentMediaItemIndex) ?: return
         if (player.playbackParameters.speed != c.speed) player.setPlaybackSpeed(c.speed)
         if (player.volume != c.volume) player.volume = c.volume
+    }
+
+    /** Saat scrub, lompat ke keyframe terdekat agar cepat; setelah selesai kembali ke seek presisi. */
+    fun setScrubbing(on: Boolean) {
+        player.setSeekParameters(if (on) SeekParameters.CLOSEST_SYNC else SeekParameters.EXACT)
     }
 
     fun globalMs(): Long {
@@ -112,7 +156,6 @@ class PreviewController(context: Context) {
             }
             remaining -= c.effectiveMs
         }
-        if (hasMusic && player.isPlaying) musicPlayer.seekTo(musicPositionFor(ms))
     }
 
     fun seekToClip(index: Int) {
@@ -130,16 +173,18 @@ class PreviewController(context: Context) {
 
     fun pause() {
         player.pause()
-        musicPlayer.pause()
+        audioPlayers.values.forEach { it.player.pause() }
     }
 
     fun release() {
         player.release()
-        musicPlayer.release()
+        audioPlayers.values.forEach { it.player.release() }
+        audioPlayers.clear()
     }
 
-    private fun musicPositionFor(globalMs: Long): Long {
-        val d = musicPlayer.duration
-        return if (d > 0) globalMs % d else globalMs
+    private companion object {
+        /** Batas pemutar audio bersamaan di preview (export tetap memakai semua klip audio). */
+        const val MAX_AUDIO_PLAYERS = 8
+        const val DRIFT_MS = 250L
     }
 }

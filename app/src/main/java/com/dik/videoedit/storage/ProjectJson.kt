@@ -4,7 +4,7 @@ import com.dik.videoedit.models.AspectOption
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.EffectType
 import com.dik.videoedit.models.FilterType
-import com.dik.videoedit.models.MusicTrack
+import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Project
 import com.dik.videoedit.models.TextItem
 import com.dik.videoedit.models.TextPosition
@@ -20,7 +20,7 @@ object ProjectJson {
         enumValues<T>().firstOrNull { it.name == this } ?: default
 
     fun toJson(p: Project): String = JSONObject().apply {
-        put("version", 1)
+        put("version", 2)
         put("id", p.id)
         put("name", p.name)
         put("createdAt", p.createdAt)
@@ -47,14 +47,24 @@ object ProjectJson {
                 })
             }
         })
-        p.music?.let { m ->
-            put("music", JSONObject().apply {
-                put("uri", m.uri)
-                put("name", m.name)
-                put("durationMs", m.durationMs)
-                put("volume", m.volume.toDouble())
-            })
-        }
+        put("audio", JSONArray().apply {
+            p.audio.forEach { a ->
+                put(JSONObject().apply {
+                    put("id", a.id)
+                    put("uri", a.uri)
+                    put("name", a.name)
+                    put("sourceDurationMs", a.sourceDurationMs)
+                    put("startMs", a.startMs)
+                    put("trimStartMs", a.trimStartMs)
+                    put("trimEndMs", a.trimEndMs)
+                    put("volume", a.volume.toDouble())
+                    put("fadeInMs", a.fadeInMs)
+                    put("fadeOutMs", a.fadeOutMs)
+                    put("speed", a.speed.toDouble())
+                    put("extracted", a.extracted)
+                })
+            }
+        })
         put("texts", JSONArray().apply {
             p.texts.forEach { t ->
                 put(JSONObject().apply {
@@ -98,13 +108,37 @@ object ProjectJson {
                 size = t.optString("size").toEnum(TextSize.MEDIUM),
             )
         }
-        val music = o.optJSONObject("music")?.let { m ->
-            MusicTrack(
-                uri = m.getString("uri"),
-                name = m.optString("name", "Musik"),
-                durationMs = m.getLong("durationMs"),
-                volume = m.optDouble("volume", 0.8).toFloat(),
+        val audioJson = o.optJSONArray("audio") ?: JSONArray()
+        val audio = (0 until audioJson.length()).map { i ->
+            val a = audioJson.getJSONObject(i)
+            val src = a.getLong("sourceDurationMs")
+            val ts = a.optLong("trimStartMs", 0L).coerceIn(0L, src)
+            AudioTrack(
+                id = a.getString("id"),
+                uri = a.getString("uri"),
+                name = a.optString("name", "Audio"),
+                sourceDurationMs = src,
+                startMs = a.optLong("startMs", 0L).coerceAtLeast(0L),
+                trimStartMs = ts,
+                trimEndMs = a.optLong("trimEndMs", src).coerceIn(ts, src),
+                volume = a.optDouble("volume", 1.0).toFloat().coerceIn(0f, 1f),
+                fadeInMs = a.optLong("fadeInMs", 0L).coerceAtLeast(0L),
+                fadeOutMs = a.optLong("fadeOutMs", 0L).coerceAtLeast(0L),
+                speed = a.optDouble("speed", 1.0).toFloat().coerceAtLeast(0.1f),
+                extracted = a.optBoolean("extracted", false),
             )
+        }.toMutableList()
+        // Migrasi proyek versi lama: satu musik latar menjadi satu klip audio yang mulai dari detik 0.
+        o.optJSONObject("music")?.let { m ->
+            if (audio.isEmpty()) {
+                val d = m.getLong("durationMs")
+                audio += AudioTrack(
+                    uri = m.getString("uri"),
+                    name = m.optString("name", "Musik"),
+                    sourceDurationMs = d,
+                    volume = m.optDouble("volume", 0.8).toFloat().coerceIn(0f, 1f),
+                )
+            }
         }
         Project(
             id = o.getString("id"),
@@ -114,7 +148,7 @@ object ProjectJson {
             clips = clips,
             aspect = o.optString("aspect").toEnum(AspectOption.ORIGINAL),
             rotation = o.optInt("rotation", 0),
-            music = music,
+            audio = audio,
             texts = texts,
             filter = o.optString("filter").toEnum(FilterType.NONE),
             effect = o.optString("effect").toEnum(EffectType.NONE),

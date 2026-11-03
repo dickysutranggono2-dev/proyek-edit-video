@@ -29,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dik.videoedit.models.AspectOption
+import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.EffectType
 import com.dik.videoedit.models.FilterType
 import com.dik.videoedit.models.Project
@@ -56,7 +56,6 @@ import com.dik.videoedit.models.TextItem
 import com.dik.videoedit.models.TextPosition
 import com.dik.videoedit.models.TextSize
 import com.dik.videoedit.models.TransitionType
-import com.dik.videoedit.videoeditor.ProjectOps
 import com.dik.videoedit.videoeditor.formatSpeed
 import com.dik.videoedit.videoeditor.formatTimeTenth
 import com.dik.videoedit.viewmodels.EditorViewModel
@@ -72,42 +71,6 @@ private fun PanelTitle(text: String, hint: String? = null) {
 private fun Label(text: String) {
     Text(text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(6.dp))
-}
-
-/** Potong: atur titik awal/akhir klip terpilih, urutan klip, dan hapus klip. */
-@Composable
-internal fun TrimPanel(vm: EditorViewModel, project: Project, selected: Int) {
-    val clip = project.clips.getOrNull(selected) ?: return
-    var range by remember(clip.id, clip.trimStartMs, clip.trimEndMs) {
-        mutableStateOf(clip.trimStartMs.toFloat()..clip.trimEndMs.toFloat())
-    }
-    PanelTitle("Potong Klip ${selected + 1} dari ${project.clips.size}", clip.name)
-    RangeSlider(
-        value = range,
-        onValueChange = { if (it.endInclusive - it.start >= ProjectOps.MIN_CLIP_MS) range = it },
-        valueRange = 0f..clip.sourceDurationMs.toFloat(),
-        onValueChangeFinished = { vm.trim(range.start.toLong(), range.endInclusive.toLong()) },
-    )
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text("Mulai ${formatTimeTenth(range.start.toLong())}", fontSize = 13.sp)
-        Text("Durasi ${formatTimeTenth((range.endInclusive - range.start).toLong())}", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-        Text("Selesai ${formatTimeTenth(range.endInclusive.toLong())}", fontSize = 13.sp)
-    }
-    Spacer(Modifier.height(16.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = { vm.moveSelected(-1) }, enabled = selected > 0) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, Modifier.size(18.dp))
-            Spacer(Modifier.width(4.dp)); Text("Geser")
-        }
-        OutlinedButton(onClick = { vm.moveSelected(1) }, enabled = selected < project.clips.lastIndex) {
-            Text("Geser"); Spacer(Modifier.width(4.dp))
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(18.dp))
-        }
-        OutlinedButton(onClick = { vm.deleteSelected() }, enabled = project.clips.size > 1) {
-            Icon(Icons.Filled.Delete, null, Modifier.size(18.dp))
-            Spacer(Modifier.width(4.dp)); Text("Hapus")
-        }
-    }
 }
 
 /** Crop & rotasi: rasio 9:16 / 1:1 / 16:9 dan putar 90°. */
@@ -142,29 +105,44 @@ internal fun SpeedPanel(vm: EditorViewModel, project: Project, selected: Int) {
     TextButton(onClick = { vm.setSpeed(clip.speed, true) }) { Text("Terapkan ${formatSpeed(clip.speed)} ke semua klip") }
 }
 
+/** Volume suara asli klip video yang dipilih. */
 @Composable
-internal fun MusicPanel(vm: EditorViewModel, project: Project, selected: Int, onPickAudio: () -> Unit) {
-    val clip = project.clips.getOrNull(selected)
-    PanelTitle("Musik & Volume")
-    val music = project.music
-    if (music == null) {
-        Button(onClick = onPickAudio) {
-            Icon(Icons.Filled.MusicNote, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Pilih Musik")
-        }
-    } else {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.MusicNote, null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(8.dp))
-            Text(music.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            TextButton(onClick = onPickAudio) { Text("Ganti") }
-            IconButton(onClick = { vm.removeMusic() }) { Icon(Icons.Filled.Delete, "Hapus musik") }
-        }
-        VolumeSlider("Volume musik", music.volume, key = music.uri) { vm.setMusicVolume(it) }
+internal fun ClipVolumePanel(vm: EditorViewModel, project: Project, selected: Int) {
+    val clip = project.clips.getOrNull(selected) ?: return
+    PanelTitle("Volume Klip ${selected + 1}", "Suara asli video. Atur ke 0% untuk membisukan.")
+    VolumeSlider("Volume", clip.volume, key = clip.id) { vm.setClipVolume(it) }
+}
+
+/** Volume klip audio yang dipilih. */
+@Composable
+internal fun AudioVolumePanel(vm: EditorViewModel, track: AudioTrack) {
+    PanelTitle("Volume Audio", track.name)
+    VolumeSlider("Volume", track.volume, key = track.id) { vm.setAudioVolume(track.id, it) }
+}
+
+/** Fade in dan fade out klip audio (maksimal separuh durasi klip, atau 5 detik). */
+@Composable
+internal fun AudioFadePanel(vm: EditorViewModel, track: AudioTrack) {
+    val maxMs = minOf(5000L, track.durationMs / 2).coerceAtLeast(100L).toFloat()
+    var fadeIn by remember(track.id, track.fadeInMs) { mutableFloatStateOf(track.fadeInMs.toFloat().coerceAtMost(maxMs)) }
+    var fadeOut by remember(track.id, track.fadeOutMs) { mutableFloatStateOf(track.fadeOutMs.toFloat().coerceAtMost(maxMs)) }
+    PanelTitle("Fade Audio", track.name)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text("Fade in", fontSize = 14.sp)
+        Text(formatTimeTenth(fadeIn.toLong()).drop(3) + " dtk", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
-    if (clip != null) {
-        Spacer(Modifier.height(8.dp))
-        VolumeSlider("Volume suara video (klip ${selected + 1})", clip.volume, key = clip.id) { vm.setClipVolume(it) }
+    Slider(
+        value = fadeIn, onValueChange = { fadeIn = it }, valueRange = 0f..maxMs,
+        onValueChangeFinished = { vm.setAudioFade(track.id, fadeIn.toLong(), fadeOut.toLong()) },
+    )
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text("Fade out", fontSize = 14.sp)
+        Text(formatTimeTenth(fadeOut.toLong()).drop(3) + " dtk", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
+    Slider(
+        value = fadeOut, onValueChange = { fadeOut = it }, valueRange = 0f..maxMs,
+        onValueChangeFinished = { vm.setAudioFade(track.id, fadeIn.toLong(), fadeOut.toLong()) },
+    )
 }
 
 @Composable

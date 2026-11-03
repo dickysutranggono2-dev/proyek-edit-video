@@ -5,14 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dik.videoedit.AppContainer
 import com.dik.videoedit.models.AspectOption
+import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.EffectType
 import com.dik.videoedit.models.FilterType
+import com.dik.videoedit.models.Focus
 import com.dik.videoedit.models.Project
 import com.dik.videoedit.models.TextItem
 import com.dik.videoedit.models.TransitionType
 import com.dik.videoedit.videoeditor.Importer
 import com.dik.videoedit.videoeditor.ProjectOps
+import com.dik.videoedit.videoprocessing.VideoProbe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +29,12 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
 
     data class State(
         val project: Project? = null,
+        /** Klip video yang aktif (mengikuti playhead bila tidak ada klip yang dipilih manual). */
         val selected: Int = 0,
+        val focus: Focus = Focus.NONE,
+        val selectedAudio: String? = null,
+        /** Posisi (ms di timeline) yang harus dilompati preview setelah proyek diperbarui; null = tidak ada. */
+        val pendingSeekMs: Long? = null,
         val canUndo: Boolean = false,
         val canRedo: Boolean = false,
         val loading: Boolean = true,
@@ -51,10 +59,12 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             return
         }
         val readable = withContext(Dispatchers.IO) { p.clips.filter { Importer.canRead(c.context, it.uri) } }
+        val readableAudio = withContext(Dispatchers.IO) { p.audio.filter { Importer.canRead(c.context, it.uri) } }
         var fixed = p
-        if (readable.size != p.clips.size) {
-            fixed = p.copy(clips = readable)
-            messages.tryEmit("${p.clips.size - readable.size} video sumber tidak ditemukan dan dilepas dari proyek.")
+        if (readable.size != p.clips.size || readableAudio.size != p.audio.size) {
+            fixed = p.copy(clips = readable, audio = readableAudio)
+            val lost = (p.clips.size - readable.size) + (p.audio.size - readableAudio.size)
+            messages.tryEmit("$lost file sumber (video/audio) tidak ditemukan dan dilepas dari proyek.")
             save(fixed)
         }
         _state.update { it.copy(project = fixed, loading = false) }
@@ -66,21 +76,25 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         c.appScope.launch { c.projects.save(p) }
     }
 
-    private fun commit(selected: Int? = null, change: (Project) -> Project) {
+    private fun commit(selected: Int? = null, seek: ((Project) -> Long)? = null, change: (Project) -> Project) {
         val cur = _state.value.project ?: return
         val next = change(cur)
         if (next == cur) return
         undoStack.addLast(cur)
         if (undoStack.size > 40) undoStack.removeFirst()
         redoStack.clear()
-        apply(next.copy(updatedAt = System.currentTimeMillis()), selected)
+        apply(next.copy(updatedAt = System.currentTimeMillis()), selected, seek?.invoke(next))
     }
 
-    private fun apply(p: Project, selected: Int? = null) {
+    private fun apply(p: Project, selected: Int? = null, seekMs: Long? = null) {
         _state.update {
+            val audioOk = it.selectedAudio != null && p.audio.any { a -> a.id == it.selectedAudio }
             it.copy(
                 project = p,
                 selected = (selected ?: it.selected).coerceIn(0, (p.clips.size - 1).coerceAtLeast(0)),
+                focus = if (it.focus == Focus.AUDIO && !audioOk) Focus.NONE else it.focus,
+                selectedAudio = if (audioOk) it.selectedAudio else null,
+                pendingSeekMs = seekMs ?: it.pendingSeekMs,
                 canUndo = undoStack.isNotEmpty(),
                 canRedo = redoStack.isNotEmpty(),
             )
@@ -102,11 +116,31 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         apply(next)
     }
 
+    /** Mengikuti klip yang sedang diputar; tidak mengubah fokus (handle trim tidak berpindah sendiri). */
     fun select(index: Int) {
         _state.update {
             val last = (it.project?.clips?.lastIndex ?: 0).coerceAtLeast(0)
             it.copy(selected = index.coerceIn(0, last))
         }
+    }
+
+    fun focusClip(index: Int) {
+        _state.update {
+            val last = (it.project?.clips?.lastIndex ?: 0).coerceAtLeast(0)
+            it.copy(selected = index.coerceIn(0, last), focus = Focus.CLIP, selectedAudio = null)
+        }
+    }
+
+    fun focusAudio(id: String) {
+        _state.update { it.copy(focus = Focus.AUDIO, selectedAudio = id) }
+    }
+
+    fun clearFocus() {
+        _state.update { it.copy(focus = Focus.NONE, selectedAudio = null) }
+    }
+
+    fun consumeSeek() {
+        _state.update { it.copy(pendingSeekMs = null) }
     }
 
     private fun commitClip(change: (Clip) -> Clip) {
@@ -119,6 +153,20 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun trim(startMs: Long, endMs: Long) {
         val i = _state.value.selected
         commit { ProjectOps.trim(it, i, startMs, endMs) }
+    }
+
+    /**
+     * Trim hasil tarik handle di timeline. [rightEdge] menentukan ke mana playhead dipindah setelahnya:
+     * ke awal klip (handle kiri) atau ke ujung klip (handle kanan), sehingga preview langsung menampilkan hasilnya.
+     */
+    fun trimClip(index: Int, startMs: Long, endMs: Long, rightEdge: Boolean) {
+        commit(
+            selected = index,
+            seek = { p ->
+                val s = ProjectOps.clipStartMs(p, index)
+                if (rightEdge) (s + (p.clips[index].effectiveMs - 40L)).coerceAtLeast(s) else s
+            },
+        ) { ProjectOps.trim(it, index, startMs, endMs) }
     }
 
     /** [atSourceMs] = posisi pada video sumber (trimStart + posisi di dalam klip). */
@@ -173,19 +221,102 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
 
     fun rotate() = commit { it.copy(rotation = (it.rotation + 90) % 360) }
 
-    fun setMusic(uri: Uri) {
+    // ---- audio -----------------------------------------------------------------------------
+
+    /** Menambah musik/audio dari penyimpanan; ditaruh di posisi playhead [atMs]. */
+    fun addAudio(uri: Uri, atMs: Long) {
+        val cur = _state.value.project ?: return
+        if (cur.audio.size >= ProjectOps.MAX_AUDIO_TRACKS) {
+            messages.tryEmit("Maksimal ${ProjectOps.MAX_AUDIO_TRACKS} klip audio.")
+            return
+        }
         viewModelScope.launch {
             _state.update { it.copy(busy = true) }
             val track = Importer.importAudio(c.context, uri)
             _state.update { it.copy(busy = false) }
-            if (track == null) messages.tryEmit("File audio tidak dapat dibuka.")
-            else commit { it.copy(music = track) }
+            if (track == null) {
+                messages.tryEmit("File audio tidak dapat dibuka.")
+            } else {
+                commit { p -> p.copy(audio = p.audio + track.copy(startMs = atMs.coerceIn(0L, p.totalDurationMs))) }
+                focusAudio(track.id)
+            }
         }
     }
 
-    fun setMusicVolume(v: Float) = commit { p -> p.copy(music = p.music?.copy(volume = v.coerceIn(0f, 1f))) }
+    /**
+     * Mengekstrak audio dari klip video ke track audio tersendiri (posisi & potongan sama dengan klip),
+     * lalu membisukan suara asli klip agar tidak terdengar ganda.
+     */
+    fun extractAudio(clipIndex: Int) {
+        val cur = _state.value.project ?: return
+        val clip = cur.clips.getOrNull(clipIndex) ?: return
+        if (cur.audio.size >= ProjectOps.MAX_AUDIO_TRACKS) {
+            messages.tryEmit("Maksimal ${ProjectOps.MAX_AUDIO_TRACKS} klip audio.")
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(busy = true) }
+            val hasAudio = withContext(Dispatchers.IO) { VideoProbe.hasAudio(c.context, Uri.parse(clip.uri)) }
+            _state.update { it.copy(busy = false) }
+            if (!hasAudio) {
+                messages.tryEmit("Klip ini tidak memiliki suara untuk diekstrak.")
+                return@launch
+            }
+            val track = AudioTrack(
+                uri = clip.uri,
+                name = "Audio - ${clip.name}",
+                sourceDurationMs = clip.sourceDurationMs,
+                startMs = ProjectOps.clipStartMs(cur, clipIndex),
+                trimStartMs = clip.trimStartMs,
+                trimEndMs = clip.trimEndMs,
+                volume = if (clip.volume < 0.05f) 1f else clip.volume,
+                speed = clip.speed,
+                extracted = true,
+            )
+            commit { p ->
+                ProjectOps.updateClip(p, clipIndex) { it.copy(volume = 0f) }.copy(audio = p.audio + track)
+            }
+            focusAudio(track.id)
+            messages.tryEmit("Audio diekstrak ke track audio. Suara asli klip dibisukan.")
+        }
+    }
 
-    fun removeMusic() = commit { it.copy(music = null) }
+    fun setAudioVolume(id: String, v: Float) =
+        commit { p -> ProjectOps.updateAudio(p, id) { it.copy(volume = v.coerceIn(0f, 1f)) } }
+
+    fun setAudioFade(id: String, fadeInMs: Long, fadeOutMs: Long) =
+        commit { p -> ProjectOps.updateAudio(p, id) { it.copy(fadeInMs = fadeInMs, fadeOutMs = fadeOutMs) } }
+
+    /** Geser klip audio di timeline. */
+    fun moveAudio(id: String, startMs: Long) = commit { ProjectOps.moveAudio(it, id, startMs) }
+
+    /** Trim klip audio lewat handle (sekaligus posisi awalnya bila handle kiri digeser). */
+    fun trimAudio(id: String, startMs: Long, trimStartMs: Long, trimEndMs: Long) =
+        commit { ProjectOps.trimAudio(it, id, startMs, trimStartMs, trimEndMs) }
+
+    fun splitAudio(id: String, atMs: Long) {
+        val cur = _state.value.project ?: return
+        if (ProjectOps.splitAudio(cur, id, atMs) == null) {
+            messages.tryEmit("Geser playhead ke bagian tengah klip audio dulu, lalu tekan Pisah.")
+            return
+        }
+        commit { ProjectOps.splitAudio(it, id, atMs) ?: it }
+    }
+
+    fun removeAudio(id: String) {
+        commit { ProjectOps.removeAudio(it, id) }
+    }
+
+    fun duplicateAudio(id: String) {
+        val cur = _state.value.project ?: return
+        if (cur.audio.size >= ProjectOps.MAX_AUDIO_TRACKS) {
+            messages.tryEmit("Maksimal ${ProjectOps.MAX_AUDIO_TRACKS} klip audio.")
+            return
+        }
+        val copy = ProjectOps.duplicateAudio(cur, id)?.second ?: return
+        commit { p -> p.copy(audio = p.audio + copy) }
+        focusAudio(copy.id)
+    }
 
     fun addText(item: TextItem) = commit { it.copy(texts = it.texts + item) }
 

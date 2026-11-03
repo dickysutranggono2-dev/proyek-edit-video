@@ -7,7 +7,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.OpenableColumns
 import com.dik.videoedit.models.Clip
-import com.dik.videoedit.models.MusicTrack
+import com.dik.videoedit.models.AudioTrack
 import kotlin.math.roundToInt
 
 /** Membaca metadata video/audio TANPA memuat isi file ke memori. */
@@ -41,18 +41,33 @@ object VideoProbe {
         }
     }
 
-    fun probeAudio(context: Context, uri: Uri): MusicTrack? {
+    fun probeAudio(context: Context, uri: Uri): AudioTrack? {
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(context, uri)
             val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
                 ?: return null
             if (duration < 500) return null
-            MusicTrack(uri = uri.toString(), name = displayName(context, uri) ?: "Musik", durationMs = duration)
+            AudioTrack(uri = uri.toString(), name = displayName(context, uri) ?: "Audio", sourceDurationMs = duration, volume = 0.8f)
         } catch (e: Exception) {
             null
         } finally {
             runCatching { retriever.release() }
+        }
+    }
+
+    /** True bila file memiliki trek audio (dipakai sebelum mengekstrak audio dari video). */
+    fun hasAudio(context: Context, uri: Uri): Boolean {
+        val extractor = MediaExtractor()
+        return try {
+            extractor.setDataSource(context, uri, null)
+            (0 until extractor.trackCount).any {
+                extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true
+            }
+        } catch (e: Exception) {
+            false
+        } finally {
+            runCatching { extractor.release() }
         }
     }
 

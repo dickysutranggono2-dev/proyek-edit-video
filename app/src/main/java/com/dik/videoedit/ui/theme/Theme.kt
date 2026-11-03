@@ -19,6 +19,7 @@ val Ink = Color(0xFF17233C)
 val Muted = Color(0xFF77849B)
 val BorderLine = Color(0xFFE7EDF7)
 val PurpleTrack = Color(0xFF9B8CFF)
+val TealTrack = Color(0xFF1FB5C9)
 val Gold = Color(0xFFFFB800)
 val Success = Color(0xFF22C55E)
 

@@ -86,12 +86,46 @@ enum class TransitionType(val label: String, val premium: Boolean) {
     FADE_WHITE("Fade Putih", true),
 }
 
-data class MusicTrack(
+/** Fokus seleksi di timeline: tidak ada, sebuah klip video, atau sebuah klip audio. */
+enum class Focus { NONE, CLIP, AUDIO }
+
+/**
+ * Satu klip audio di track audio (musik dari penyimpanan, atau audio hasil ekstrak dari video).
+ * Semua waktu dalam milidetik. File sumber tidak pernah diubah; hanya titik potong yang disimpan.
+ */
+data class AudioTrack(
+    val id: String = UUID.randomUUID().toString(),
     val uri: String,
     val name: String,
-    val durationMs: Long,
-    val volume: Float = 0.8f,
-)
+    /** Durasi file sumber (file audio, atau file video bila hasil ekstrak). */
+    val sourceDurationMs: Long,
+    /** Posisi awal klip audio di timeline. */
+    val startMs: Long = 0L,
+    val trimStartMs: Long = 0L,
+    val trimEndMs: Long = sourceDurationMs,
+    val volume: Float = 1f,
+    val fadeInMs: Long = 0L,
+    val fadeOutMs: Long = 0L,
+    /** Kecepatan putar; selain 1 hanya terjadi pada audio yang diekstrak dari klip yang dipercepat/diperlambat. */
+    val speed: Float = 1f,
+    val extracted: Boolean = false,
+) {
+    val trimmedMs: Long get() = trimEndMs - trimStartMs
+
+    /** Durasi di timeline setelah kecepatan diterapkan. */
+    val durationMs: Long get() = (trimmedMs / speed).toLong()
+
+    val endMs: Long get() = startMs + durationMs
+
+    /** Penguatan (volume x fade) pada posisi [relMs] milidetik sejak awal klip audio di timeline. */
+    fun gainAt(relMs: Long): Float {
+        val dur = durationMs
+        var g = 1f
+        if (fadeInMs > 0 && relMs < fadeInMs) g = minOf(g, relMs.toFloat() / fadeInMs)
+        if (fadeOutMs > 0 && relMs > dur - fadeOutMs) g = minOf(g, (dur - relMs).toFloat() / fadeOutMs)
+        return volume * g.coerceIn(0f, 1f)
+    }
+}
 
 data class Project(
     val id: String = UUID.randomUUID().toString(),
@@ -102,13 +136,16 @@ data class Project(
     val aspect: AspectOption = AspectOption.ORIGINAL,
     /** Rotasi searah jarum jam: 0, 90, 180, 270. */
     val rotation: Int = 0,
-    val music: MusicTrack? = null,
+    val audio: List<AudioTrack> = emptyList(),
     val texts: List<TextItem> = emptyList(),
     val filter: FilterType = FilterType.NONE,
     val effect: EffectType = EffectType.NONE,
     val transition: TransitionType = TransitionType.CUT,
 ) {
     val totalDurationMs: Long get() = clips.sumOf { it.effectiveMs }
+
+    /** Ujung timeline, termasuk audio yang melewati akhir video. */
+    val timelineEndMs: Long get() = maxOf(totalDurationMs, audio.maxOfOrNull { it.endMs } ?: 0L)
 
     val usesPremium: Boolean get() = filter.premium || effect.premium || transition.premium
 
