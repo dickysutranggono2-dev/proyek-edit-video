@@ -1,7 +1,6 @@
 package com.dik.videoedit.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -192,13 +191,13 @@ private fun EditorContent(
 
     var tool by remember { mutableStateOf<Tool?>(null) }
 
-    val addVideo = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+    val addVideo = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) vm.addClips(uris)
     }
     val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.addAudio(uri, posState.longValue)
     }
-    val launchAddVideo = { addVideo.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) }
+    val launchAddVideo = { addVideo.launch(arrayOf("video/*")) }
     val launchPickAudio = { pickAudio.launch(arrayOf("audio/*")) }
 
     Scaffold(

@@ -64,8 +64,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         if (readable.size != p.clips.size || readableAudio.size != p.audio.size) {
             fixed = p.copy(clips = readable, audio = readableAudio)
             val lost = (p.clips.size - readable.size) + (p.audio.size - readableAudio.size)
-            messages.tryEmit("$lost file sumber (video/audio) tidak ditemukan dan dilepas dari proyek.")
-            save(fixed)
+            messages.tryEmit("$lost file sumber (video/audio) tidak dapat dibaca dan dilepas dari proyek.")
         }
         _state.update { it.copy(project = fixed, loading = false) }
     }

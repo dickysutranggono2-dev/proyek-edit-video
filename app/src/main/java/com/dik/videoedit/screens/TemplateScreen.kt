@@ -1,7 +1,6 @@
 package com.dik.videoedit.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -60,7 +59,7 @@ private fun iconFor(id: String): ImageVector = when (id) {
 @Composable
 fun TemplateScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
     var pending by remember { mutableStateOf<TemplatePreset?>(null) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         val t = pending
         pending = null
         vm.createProject(uris, t, onOpenProject)
@@ -85,7 +84,7 @@ fun TemplateScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
             Surface(
                 onClick = {
                     pending = t
-                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
+                    picker.launch(arrayOf("video/*"))
                 },
                 shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 1.dp, modifier = Modifier.fillMaxWidth(),

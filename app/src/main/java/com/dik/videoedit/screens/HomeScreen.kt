@@ -1,7 +1,6 @@
 package com.dik.videoedit.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +63,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
     var renaming by remember { mutableStateOf<Project?>(null) }
     var deleting by remember { mutableStateOf<Project?>(null) }
 
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         vm.createProject(uris, null, onOpenProject)
     }
 
@@ -86,7 +85,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
                 Spacer(Modifier.height(22.dp))
                 PrimaryButton(
                     "Proyek Baru", icon = Icons.Filled.Add,
-                    onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) },
+                    onClick = { picker.launch(arrayOf("video/*")) },
                 )
                 Spacer(Modifier.height(22.dp))
             }
