@@ -199,6 +199,10 @@ private fun EditorContent(
     }
     val launchAddVideo = { addVideo.launch(arrayOf("video/*")) }
     val launchPickAudio = { pickAudio.launch(arrayOf("audio/*")) }
+    // Ambil suara dari video lain di penyimpanan (seperti "Ekstrak audio" di CapCut).
+    val launchPickVideoAudio = { pickAudio.launch(arrayOf("video/*")) }
+    // Tombol "Tambah audio" di timeline menerima file audio maupun video.
+    val launchPickAnyAudio = { pickAudio.launch(arrayOf("audio/*", "video/*")) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -291,7 +295,7 @@ private fun EditorContent(
                 onMoveAudio = { id, startMs -> vm.moveAudio(id, startMs) },
                 onTrimAudio = { id, startMs, ts, te -> vm.trimAudio(id, startMs, ts, te) },
                 onAddClip = { launchAddVideo() },
-                onAddAudio = { launchPickAudio() },
+                onAddAudio = { launchPickAnyAudio() },
             )
             Text(
                 when (ui.focus) {
@@ -335,7 +339,8 @@ private fun EditorContent(
                 Focus.NONE -> listOf(
                     ToolItem("Potong", Icons.Filled.ContentCut) { vm.focusClip(playingIndex) },
                     ToolItem("Pisah", Icons.Filled.VerticalSplit, onClick = splitNow),
-                    ToolItem("Audio", Icons.Filled.MusicNote) { launchPickAudio() },
+                    ToolItem("Musik", Icons.Filled.MusicNote) { launchPickAudio() },
+                    ToolItem("Dari Video", Icons.Filled.GraphicEq) { launchPickVideoAudio() },
                     ToolItem("Crop", Icons.Filled.Crop) { tool = Tool.CROP },
                     ToolItem("Kecepatan", Icons.Filled.Speed) { tool = Tool.SPEED },
                     ToolItem("Teks", Icons.Filled.TextFields) { tool = Tool.TEXT },

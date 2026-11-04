@@ -231,13 +231,24 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         }
         viewModelScope.launch {
             _state.update { it.copy(busy = true) }
-            val track = Importer.importAudio(c.context, uri)
+            val imported = Importer.importAudio(c.context, uri)
+            val isVideo = withContext(Dispatchers.IO) {
+                c.context.contentResolver.getType(uri)?.startsWith("video/") == true
+            }
+            val hasSound = imported != null && withContext(Dispatchers.IO) { VideoProbe.hasAudio(c.context, uri) }
             _state.update { it.copy(busy = false) }
-            if (track == null) {
-                messages.tryEmit("File audio tidak dapat dibuka.")
+            if (imported == null) {
+                messages.tryEmit("File tidak dapat dibuka.")
+            } else if (!hasSound) {
+                messages.tryEmit("File ini tidak memiliki suara.")
             } else {
+                val track = imported.copy(
+                    extracted = isVideo,
+                    name = if (isVideo) "Audio - ${imported.name}" else imported.name,
+                )
                 commit { p -> p.copy(audio = p.audio + track.copy(startMs = atMs.coerceIn(0L, p.totalDurationMs))) }
                 focusAudio(track.id)
+                if (isVideo) messages.tryEmit("Suara dari video ditambahkan sebagai track audio.")
             }
         }
     }

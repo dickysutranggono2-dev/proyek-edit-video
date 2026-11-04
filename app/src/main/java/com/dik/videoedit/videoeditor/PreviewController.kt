@@ -1,6 +1,7 @@
 package com.dik.videoedit.videoeditor
 
 import android.content.Context
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -25,6 +26,13 @@ class PreviewController(private val context: Context) {
     }
 
     private val audioPlayers = LinkedHashMap<String, AudioHolder>()
+
+    /** Pemutar khusus suara: trek gambar dimatikan, jadi aman dipakai untuk audio dari file video. */
+    private fun newAudioPlayer(): ExoPlayer = ExoPlayer.Builder(context).build().apply {
+        trackSelectionParameters = trackSelectionParameters.buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)
+            .build()
+    }
 
     private var clips: List<Clip> = emptyList()
     private var clipSignature = ""
@@ -74,7 +82,7 @@ class PreviewController(private val context: Context) {
 
         for (t in wanted) {
             val sig = "${t.uri}|${t.trimStartMs}|${t.trimEndMs}|${t.speed}"
-            val holder = audioPlayers.getOrPut(t.id) { AudioHolder(ExoPlayer.Builder(context).build(), t, "") }
+            val holder = audioPlayers.getOrPut(t.id) { AudioHolder(newAudioPlayer(), t, "") }
             if (holder.signature != sig) {
                 holder.player.setMediaItem(
                     MediaItem.Builder()
