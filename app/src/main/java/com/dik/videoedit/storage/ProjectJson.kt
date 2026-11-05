@@ -1,5 +1,6 @@
 package com.dik.videoedit.storage
 
+import com.dik.videoedit.models.AnimationType
 import com.dik.videoedit.models.AspectOption
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.EffectType
@@ -30,6 +31,8 @@ object ProjectJson {
         put("filter", p.filter.name)
         put("effect", p.effect.name)
         put("transition", p.transition.name)
+        put("animation", p.animation.name)
+        put("noiseReduction", p.noiseReduction)
         put("clips", JSONArray().apply {
             p.clips.forEach { c ->
                 put(JSONObject().apply {
@@ -73,6 +76,9 @@ object ProjectJson {
                     put("position", t.position.name)
                     put("color", t.color)
                     put("size", t.size.name)
+                    put("anchorX", t.anchorX.toDouble())
+                    put("plain", t.plain)
+                    t.imagePath?.let { put("imagePath", it) }
                 })
             }
         })
@@ -106,6 +112,9 @@ object ProjectJson {
                 position = t.optString("position").toEnum(TextPosition.BOTTOM),
                 color = t.optInt("color", 0xFFFFFFFF.toInt()),
                 size = t.optString("size").toEnum(TextSize.MEDIUM),
+                anchorX = t.optDouble("anchorX", 0.0).toFloat(),
+                plain = t.optBoolean("plain", false),
+                imagePath = if (t.has("imagePath")) t.getString("imagePath") else null,
             )
         }
         val audioJson = o.optJSONArray("audio") ?: JSONArray()
@@ -153,6 +162,8 @@ object ProjectJson {
             filter = o.optString("filter").toEnum(FilterType.NONE),
             effect = o.optString("effect").toEnum(EffectType.NONE),
             transition = o.optString("transition").toEnum(TransitionType.CUT),
+            animation = o.optString("animation").toEnum(AnimationType.NONE),
+            noiseReduction = o.optBoolean("noiseReduction", false),
         )
     }.getOrNull()
 }

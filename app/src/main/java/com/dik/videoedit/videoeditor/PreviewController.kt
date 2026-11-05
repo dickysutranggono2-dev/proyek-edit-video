@@ -42,7 +42,7 @@ class PreviewController(private val context: Context) {
     fun update(p: Project) {
         clips = p.clips
 
-        val fx = "${p.rotation}|${p.aspect}|${p.filter}|${p.effect}|${p.outputRatio}|" +
+        val fx = "${p.rotation}|${p.aspect}|${p.filter}|${p.effect}|${p.animation}|${p.outputRatio}|" +
             "${p.clips.firstOrNull()?.width}x${p.clips.firstOrNull()?.height}"
         if (fx != effectSignature) {
             // Wajib dipanggil sebelum prepare() pertama.

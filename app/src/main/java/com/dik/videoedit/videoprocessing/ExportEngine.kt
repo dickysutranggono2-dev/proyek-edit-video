@@ -1,6 +1,8 @@
 package com.dik.videoedit.videoprocessing
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
@@ -15,6 +17,7 @@ import androidx.media3.common.audio.ChannelMixingAudioProcessor
 import androidx.media3.common.audio.ChannelMixingMatrix
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.effect.FrameDropEffect
+import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.Presentation
@@ -112,7 +115,7 @@ class ExportEngine(private val context: Context) {
         // (jeda senyap) di depan klip, lalu Transformer mencampur semua sequence jadi satu audio.
         val totalMs = p.totalDurationMs
         p.audio.sortedBy { it.startMs }.forEach { a ->
-            audioSequence(a, totalMs)?.let { sequences += it }
+            audioSequence(a, totalMs, p.noiseReduction)?.let { sequences += it }
         }
 
         val videoEffects = mutableListOf<Effect>()
@@ -121,7 +124,7 @@ class ExportEngine(private val context: Context) {
         videoEffects += EffectsFactory.postEffects(p, min(w, h))
 
         val overlays = mutableListOf<TextureOverlay>()
-        p.texts.forEach { overlays += textOverlay(it, w, h) }
+        p.texts.forEach { item -> itemOverlay(item, w, h)?.let { overlays += it } }
         if (!o.removeWatermark) overlays += watermarkOverlay(w, h)
         if (overlays.isNotEmpty()) videoEffects += OverlayEffect(overlays)
 
@@ -150,6 +153,7 @@ class ExportEngine(private val context: Context) {
                 setPitch(1f)
             }
         }
+        if (p.noiseReduction) audio += NoiseReductionAudioProcessor()
         volumeProcessor(clip.volume)?.let { audio += it }
 
         if (p.transition != TransitionType.CUT && p.clips.size > 1) {
@@ -169,7 +173,7 @@ class ExportEngine(private val context: Context) {
      * Membuat sequence untuk satu klip audio, atau null bila klip berada di luar durasi video.
      * Bagian audio yang melewati akhir video dipotong agar durasi hasil export tidak bertambah.
      */
-    private fun audioSequence(a: AudioTrack, totalMs: Long): EditedMediaItemSequence? {
+    private fun audioSequence(a: AudioTrack, totalMs: Long, noiseReduction: Boolean): EditedMediaItemSequence? {
         if (a.startMs >= totalMs - 50) return null
         val room = totalMs - a.startMs
         var durMs = a.durationMs
@@ -194,6 +198,7 @@ class ExportEngine(private val context: Context) {
                 setPitch(1f)
             }
         }
+        if (noiseReduction) processors += NoiseReductionAudioProcessor()
         processors += GainFadeAudioProcessor(
             volume = a.volume,
             fadeInUs = a.fadeInMs * 1000,
@@ -225,7 +230,7 @@ class ExportEngine(private val context: Context) {
 
     private fun textOverlay(t: TextItem, w: Int, h: Int): TextureOverlay {
         val shortSide = min(w, h).toFloat()
-        val px = TextFit.fitPx(t.text, shortSide * t.size.fraction, w * 0.92f)
+        val px = TextFit.fitPx(t.text, shortSide * t.heightFraction, w * 0.92f)
         val s = SpannableString(t.text)
         val flag = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
         s.setSpan(ForegroundColorSpan(t.color), 0, s.length, flag)
@@ -233,9 +238,34 @@ class ExportEngine(private val context: Context) {
         s.setSpan(AbsoluteSizeSpan(px.roundToInt(), false), 0, s.length, flag)
         val settings = OverlaySettings.Builder()
             .setOverlayFrameAnchor(0f, 0f)
-            .setBackgroundFrameAnchor(0f, t.position.anchorY)
+            .setBackgroundFrameAnchor(t.anchorX, t.position.anchorY)
             .build()
         return TextOverlay.createStaticTextOverlay(s, settings)
+    }
+
+    /** Teks, stiker emoji, atau overlay foto. Null bila file gambar tidak bisa dibaca. */
+    private fun itemOverlay(t: TextItem, w: Int, h: Int): TextureOverlay? {
+        val path = t.imagePath ?: return textOverlay(t, w, h)
+        val bmp = loadOverlayBitmap(path, (w * t.imageWidthFraction).toInt().coerceAtLeast(16)) ?: return null
+        val settings = OverlaySettings.Builder()
+            .setOverlayFrameAnchor(0f, 0f)
+            .setBackgroundFrameAnchor(t.anchorX, t.position.anchorY)
+            .build()
+        return BitmapOverlay.createStaticBitmapOverlay(bmp, settings)
+    }
+
+    private fun loadOverlayBitmap(path: String, targetWidth: Int): Bitmap? = try {
+        val src = BitmapFactory.decodeFile(path)
+        if (src == null) {
+            null
+        } else if (src.width == targetWidth) {
+            src
+        } else {
+            val th = (src.height.toFloat() * targetWidth / src.width).roundToInt().coerceAtLeast(1)
+            Bitmap.createScaledBitmap(src, targetWidth, th, true)
+        }
+    } catch (e: Exception) {
+        null
     }
 
     private fun watermarkOverlay(w: Int, h: Int): TextureOverlay {

@@ -2,6 +2,7 @@ package com.dik.videoedit.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,9 +33,11 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.Animation
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.FilterVintage
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MusicNote
@@ -64,6 +67,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,7 +76,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import android.graphics.BitmapFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.layout.ContentScale
 import android.net.Uri
 import coil.compose.AsyncImage
@@ -105,7 +113,7 @@ import com.dik.videoedit.videoprocessing.TextFit
 import com.dik.videoedit.viewmodels.EditorViewModel
 import kotlinx.coroutines.delay
 
-enum class Tool { CROP, SPEED, CLIP_VOLUME, AUDIO_VOLUME, AUDIO_FADE, TEXT, FILTER, EFFECT }
+enum class Tool { CROP, SPEED, CLIP_VOLUME, AUDIO_VOLUME, AUDIO_FADE, TEXT, STICKER, ANIMATION, FILTER, EFFECT }
 
 private class ToolItem(val label: String, val icon: ImageVector, val enabled: Boolean = true, val onClick: () -> Unit)
 
@@ -196,6 +204,9 @@ private fun EditorContent(
     }
     val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.addAudio(uri, posState.longValue)
+    }
+    val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.addImageOverlay(uri)
     }
     val launchAddVideo = { addVideo.launch(arrayOf("video/*")) }
     val launchPickAudio = { pickAudio.launch(arrayOf("audio/*")) }
@@ -344,6 +355,8 @@ private fun EditorContent(
                     ToolItem("Crop", Icons.Filled.Crop) { tool = Tool.CROP },
                     ToolItem("Kecepatan", Icons.Filled.Speed) { tool = Tool.SPEED },
                     ToolItem("Teks", Icons.Filled.TextFields) { tool = Tool.TEXT },
+                    ToolItem("Stiker", Icons.Filled.EmojiEmotions) { tool = Tool.STICKER },
+                    ToolItem("Animasi", Icons.Filled.Animation) { tool = Tool.ANIMATION },
                     ToolItem("Filter", Icons.Filled.FilterVintage) { tool = Tool.FILTER },
                     ToolItem("Efek", Icons.Filled.AutoAwesome) { tool = Tool.EFFECT },
                 )
@@ -371,9 +384,11 @@ private fun EditorContent(
                     Tool.CROP -> CropPanel(vm, project)
                     Tool.SPEED -> SpeedPanel(vm, project, ui.selected)
                     Tool.CLIP_VOLUME -> ClipVolumePanel(vm, project, ui.selected)
-                    Tool.AUDIO_VOLUME -> project.audio.firstOrNull { it.id == ui.selectedAudio }?.let { AudioVolumePanel(vm, it) }
+                    Tool.AUDIO_VOLUME -> project.audio.firstOrNull { it.id == ui.selectedAudio }?.let { AudioVolumePanel(vm, project, it) }
                     Tool.AUDIO_FADE -> project.audio.firstOrNull { it.id == ui.selectedAudio }?.let { AudioFadePanel(vm, it) }
                     Tool.TEXT -> TextPanel(vm, project)
+                    Tool.STICKER -> StickerPanel(vm, project, onPickImage = { pickImage.launch(arrayOf("image/*")) })
+                    Tool.ANIMATION -> AnimationPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
                     Tool.FILTER -> FilterPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
                     Tool.EFFECT -> EffectPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
                 }
@@ -443,7 +458,10 @@ private fun TrimFrameOverlay(preview: TrimPreview, crop: Boolean) {
     )
 }
 
-/** Teks di preview digambar dengan Compose; ukuran & posisinya mengikuti rumus yang sama dengan export. */
+/**
+ * Teks, stiker emoji, dan overlay foto di preview digambar dengan Compose; ukuran & posisinya mengikuti
+ * rumus yang sama dengan export.
+ */
 @Composable
 private fun TextOverlays(project: Project) {
     if (project.texts.isEmpty()) return
@@ -453,16 +471,34 @@ private fun TextOverlays(project: Project) {
         val hPx = with(density) { maxHeight.toPx() }
         val shortSide = minOf(wPx, hPx)
         project.texts.forEach { t ->
-            val px = TextFit.fitPx(t.text, shortSide * t.size.fraction, wPx * 0.92f)
-            Text(
-                t.text,
-                color = Color(t.color),
-                fontSize = with(density) { px.toSp() },
-                maxLines = 1, softWrap = false,
-                modifier = Modifier.align(BiasAlignment(0f, -t.position.anchorY))
-                    .background(Color(t.backgroundColor))
-                    .padding(horizontal = 4.dp),
-            )
+            val align = BiasAlignment(t.anchorX, -t.position.anchorY)
+            val path = t.imagePath
+            if (path != null) {
+                OverlayImage(path, wPx * t.imageWidthFraction, Modifier.align(align))
+            } else {
+                val px = TextFit.fitPx(t.text, shortSide * t.heightFraction, wPx * 0.92f)
+                Text(
+                    t.text,
+                    color = Color(t.color),
+                    fontSize = with(density) { px.toSp() },
+                    maxLines = 1, softWrap = false,
+                    modifier = Modifier.align(align)
+                        .background(Color(t.backgroundColor))
+                        .padding(horizontal = 4.dp),
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun OverlayImage(path: String, widthPx: Float, modifier: Modifier) {
+    val bmp by produceState<android.graphics.Bitmap?>(initialValue = null, path) {
+        value = withContext(Dispatchers.IO) { runCatching { BitmapFactory.decodeFile(path) }.getOrNull() }
+    }
+    val b = bmp ?: return
+    val density = LocalDensity.current
+    val w = with(density) { widthPx.toDp() }
+    val h = with(density) { (widthPx * b.height / b.width).toDp() }
+    Image(bitmap = b.asImageBitmap(), contentDescription = null, modifier = modifier.size(w, h))
 }

@@ -3,6 +3,7 @@ package com.dik.videoedit.videoeditor
 import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.Project
+import com.dik.videoedit.models.SpeedRamp
 import java.util.UUID
 
 /** Operasi murni pada proyek (tanpa efek samping), mudah diuji. */
@@ -28,6 +29,29 @@ object ProjectOps {
         val list = p.clips.toMutableList()
         list[index] = first
         list.add(index + 1, second)
+        return p.copy(clips = list)
+    }
+
+    const val MIN_RAMP_MS = 3000L
+
+    /**
+     * Speed ramp: membagi klip menjadi beberapa bagian berurutan, masing-masing dengan kecepatan sendiri
+     * (porsi dihitung dari durasi sumber yang sudah dipotong). Null bila klip terlalu pendek.
+     */
+    fun speedRamp(p: Project, index: Int, ramp: SpeedRamp): Project? {
+        val clip = p.clips.getOrNull(index) ?: return null
+        if (clip.trimmedMs < MIN_RAMP_MS) return null
+        val parts = ArrayList<Clip>()
+        var cursor = clip.trimStartMs
+        ramp.parts.forEachIndexed { i, (fraction, speed) ->
+            val end = if (i == ramp.parts.lastIndex) clip.trimEndMs
+            else (cursor + clip.trimmedMs * fraction).toLong().coerceAtMost(clip.trimEndMs)
+            parts += clip.copy(id = UUID.randomUUID().toString(), trimStartMs = cursor, trimEndMs = end, speed = speed)
+            cursor = end
+        }
+        val list = p.clips.toMutableList()
+        list.removeAt(index)
+        list.addAll(index, parts)
         return p.copy(clips = list)
     }
 

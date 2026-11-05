@@ -4,6 +4,9 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dik.videoedit.AppContainer
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import com.dik.videoedit.models.AnimationType
 import com.dik.videoedit.models.AspectOption
 import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Clip
@@ -11,6 +14,7 @@ import com.dik.videoedit.models.EffectType
 import com.dik.videoedit.models.FilterType
 import com.dik.videoedit.models.Focus
 import com.dik.videoedit.models.Project
+import com.dik.videoedit.models.SpeedRamp
 import com.dik.videoedit.models.TextItem
 import com.dik.videoedit.models.TransitionType
 import com.dik.videoedit.videoeditor.Importer
@@ -24,6 +28,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.UUID
 
 class EditorViewModel(private val c: AppContainer, private val projectId: String) : ViewModel() {
 
@@ -329,6 +335,64 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     }
 
     fun addText(item: TextItem) = commit { it.copy(texts = it.texts + item) }
+
+    /** Speed ramp pada klip terpilih: klip dibagi beberapa bagian dengan kecepatan berbeda. */
+    fun speedRamp(ramp: SpeedRamp) {
+        val cur = _state.value.project ?: return
+        val i = _state.value.selected
+        if (ProjectOps.speedRamp(cur, i, ramp) == null) {
+            messages.tryEmit("Klip terlalu pendek untuk speed ramp (minimal ${ProjectOps.MIN_RAMP_MS / 1000} detik).")
+            return
+        }
+        commit(selected = i, seek = { p -> ProjectOps.clipStartMs(p, i) }) { ProjectOps.speedRamp(it, i, ramp) ?: it }
+    }
+
+    fun setAnimation(a: AnimationType) = commit { it.copy(animation = a) }
+
+    fun setNoiseReduction(on: Boolean) = commit { it.copy(noiseReduction = on) }
+
+    /** Overlay foto: gambar diperkecil lalu disalin ke penyimpanan aplikasi agar tetap ada setelah aplikasi ditutup. */
+    fun addImageOverlay(uri: Uri) {
+        val cur = _state.value.project ?: return
+        if (cur.texts.size >= MAX_ITEMS) {
+            messages.tryEmit("Maksimal $MAX_ITEMS teks/stiker/overlay.")
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(busy = true) }
+            val path = withContext(Dispatchers.IO) { saveOverlayImage(uri) }
+            _state.update { it.copy(busy = false) }
+            if (path == null) {
+                messages.tryEmit("Gambar tidak dapat dibuka.")
+            } else {
+                commit { p -> p.copy(texts = p.texts + TextItem(text = "", plain = true, imagePath = path, position = com.dik.videoedit.models.TextPosition.CENTER)) }
+            }
+        }
+    }
+
+    private fun saveOverlayImage(uri: Uri): String? = try {
+        val resolver = c.context.contentResolver
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 1024) sample *= 2
+        val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+        val bmp = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+        if (bmp == null) {
+            null
+        } else {
+            val dir = File(c.context.filesDir, "overlays").apply { mkdirs() }
+            val file = File(dir, UUID.randomUUID().toString() + ".png")
+            file.outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            file.absolutePath
+        }
+    } catch (e: Exception) {
+        null
+    }
+
+    private companion object {
+        const val MAX_ITEMS = 12
+    }
 
     fun removeText(id: String) = commit { p -> p.copy(texts = p.texts.filterNot { it.id == id }) }
 

@@ -1,20 +1,26 @@
 package com.dik.videoedit.videoprocessing
 
+import android.graphics.Matrix
 import androidx.media3.common.Effect
 import androidx.media3.effect.Brightness
 import androidx.media3.effect.Contrast
 import androidx.media3.effect.Crop
 import androidx.media3.effect.GaussianBlur
 import androidx.media3.effect.HslAdjustment
+import androidx.media3.effect.MatrixTransformation
 import androidx.media3.effect.Presentation
 import androidx.media3.effect.RgbAdjustment
 import androidx.media3.effect.RgbFilter
 import androidx.media3.effect.RgbMatrix
 import androidx.media3.effect.ScaleAndRotateTransformation
+import com.dik.videoedit.models.AnimationType
 import com.dik.videoedit.models.EffectType
 import com.dik.videoedit.models.FilterType
 import com.dik.videoedit.models.Project
+import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.sin
 
 /**
  * Satu sumber kebenaran untuk efek visual: dipakai oleh preview (ExoPlayer.setVideoEffects)
@@ -42,6 +48,7 @@ object EffectsFactory {
             EffectType.INVERT -> add(RgbFilter.createInvertedFilter())
             else -> Unit
         }
+        animationEffect(p.animation)?.let { add(it) }
         when (p.filter) {
             FilterType.NONE -> Unit
             FilterType.BRIGHT -> {
@@ -56,6 +63,37 @@ object EffectsFactory {
                 add(HslAdjustment.Builder().adjustSaturation(35f).build())
                 add(Contrast(0.10f))
             }
+        }
+    }
+
+    /**
+     * Animasi berbasis waktu (versi sederhana dari keyframe). Selalu di-zoom sedikit agar tepi video
+     * tidak terlihat kosong saat bergerak. Matriks dalam koordinat NDC (-1..1), pusat di (0,0).
+     */
+    private fun animationEffect(type: AnimationType): Effect? = when (type) {
+        AnimationType.NONE -> null
+        AnimationType.ZOOM_PULSE -> MatrixTransformation { us ->
+            val t = us / 1_000_000.0
+            val k = (1.10 + 0.08 * sin(2 * PI * t / 3.0)).toFloat()
+            Matrix().apply { postScale(k, k) }
+        }
+        AnimationType.SLOW_ZOOM -> MatrixTransformation { us ->
+            val t = us / 1_000_000.0
+            // Gelombang segitiga: 1,0x -> 1,25x -> 1,0x tiap 10 detik.
+            val phase = (t % 10.0) / 5.0
+            val k = (1.0 + 0.25 * (1.0 - abs(phase - 1.0))).toFloat()
+            Matrix().apply { postScale(k, k) }
+        }
+        AnimationType.DRIFT -> MatrixTransformation { us ->
+            val t = us / 1_000_000.0
+            val dx = (0.06 * sin(2 * PI * t / 8.0)).toFloat()
+            Matrix().apply { postScale(1.14f, 1.14f); postTranslate(dx, 0f) }
+        }
+        AnimationType.SHAKE -> MatrixTransformation { us ->
+            val t = us / 1_000_000.0
+            val dx = (0.012 * sin(2 * PI * 7.0 * t)).toFloat()
+            val dy = (0.012 * sin(2 * PI * 9.0 * t + 1.0)).toFloat()
+            Matrix().apply { postScale(1.06f, 1.06f); postTranslate(dx, dy) }
         }
     }
 

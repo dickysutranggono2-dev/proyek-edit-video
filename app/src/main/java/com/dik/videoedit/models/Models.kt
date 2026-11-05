@@ -57,9 +57,47 @@ data class TextItem(
     val position: TextPosition = TextPosition.BOTTOM,
     val color: Int = 0xFFFFFFFF.toInt(),
     val size: TextSize = TextSize.MEDIUM,
+    /** Posisi horizontal dalam koordinat NDC: -0.75 kiri, 0 tengah, 0.75 kanan. */
+    val anchorX: Float = 0f,
+    /** True untuk stiker emoji: tanpa latar dan ukurannya lebih besar dari teks biasa. */
+    val plain: Boolean = false,
+    /** Path file gambar (overlay foto) di penyimpanan aplikasi; null untuk teks/stiker emoji. */
+    val imagePath: String? = null,
 ) {
     /** Latar semi-transparan agar teks tetap terbaca di video terang/gelap. */
-    val backgroundColor: Int get() = if (color == 0xFF000000.toInt()) 0x66FFFFFF else 0x66000000
+    val backgroundColor: Int
+        get() = when {
+            plain -> 0x00000000
+            color == 0xFF000000.toInt() -> 0x66FFFFFF
+            else -> 0x66000000
+        }
+
+    /** Tinggi huruf relatif terhadap sisi terpendek frame. */
+    val heightFraction: Float get() = size.fraction * (if (plain) 2.2f else 1f)
+
+    /** Lebar overlay foto relatif terhadap lebar frame. */
+    val imageWidthFraction: Float
+        get() = when (size) {
+            TextSize.SMALL -> 0.2f
+            TextSize.MEDIUM -> 0.35f
+            TextSize.LARGE -> 0.55f
+        }
+}
+
+/** Animasi otomatis sepanjang video (versi sederhana dari keyframe). */
+enum class AnimationType(val label: String, val premium: Boolean) {
+    NONE("Tanpa Animasi", false),
+    ZOOM_PULSE("Zoom Denyut", true),
+    SLOW_ZOOM("Zoom Perlahan", true),
+    DRIFT("Geser Pelan", true),
+    SHAKE("Getar", true),
+}
+
+/** Speed ramp: klip dibagi beberapa bagian dengan kecepatan berbeda. Pasangan (porsi durasi, kecepatan). */
+enum class SpeedRamp(val label: String, val parts: List<Pair<Float, Float>>) {
+    SLOW_THEN_FAST("Lambat lalu Cepat", listOf(0.4f to 0.5f, 0.6f to 2f)),
+    FAST_SLOW_FAST("Cepat - Lambat - Cepat", listOf(0.3f to 2f, 0.4f to 0.4f, 0.3f to 2f)),
+    HERO("Hero", listOf(0.3f to 1f, 0.35f to 0.5f, 0.35f to 1.5f)),
 }
 
 enum class FilterType(val label: String, val premium: Boolean) {
@@ -141,13 +179,16 @@ data class Project(
     val filter: FilterType = FilterType.NONE,
     val effect: EffectType = EffectType.NONE,
     val transition: TransitionType = TransitionType.CUT,
+    val animation: AnimationType = AnimationType.NONE,
+    /** Filter pengurang bising untuk semua audio (diterapkan saat export). */
+    val noiseReduction: Boolean = false,
 ) {
     val totalDurationMs: Long get() = clips.sumOf { it.effectiveMs }
 
     /** Ujung timeline, termasuk audio yang melewati akhir video. */
     val timelineEndMs: Long get() = maxOf(totalDurationMs, audio.maxOfOrNull { it.endMs } ?: 0L)
 
-    val usesPremium: Boolean get() = filter.premium || effect.premium || transition.premium
+    val usesPremium: Boolean get() = filter.premium || effect.premium || transition.premium || animation.premium
 
     /** Rasio (lebar/tinggi) frame hasil akhir. */
     val outputRatio: Float
@@ -167,6 +208,8 @@ data class TemplatePreset(
     val aspect: AspectOption = AspectOption.ORIGINAL,
     val speed: Float = 1f,
     val filter: FilterType = FilterType.NONE,
+    /** Bila diisi, tiap video yang dipilih dipotong menjadi slot sepanjang ini (ms), dari awal video. */
+    val slotMs: Long? = null,
 )
 
 object Templates {
@@ -177,5 +220,7 @@ object Templates {
         TemplatePreset("slowmo", "Gerak Lambat", "Kecepatan 0,5x untuk momen yang dramatis", speed = 0.5f),
         TemplatePreset("timelapse", "Timelapse", "Kecepatan 3x untuk perjalanan atau proses panjang", speed = 3f),
         TemplatePreset("bright", "Cerah & Segar", "Filter Cerah agar video lebih hidup", filter = FilterType.BRIGHT),
+        TemplatePreset("montage", "Montase Cepat", "Pilih beberapa video, tiap video otomatis jadi potongan 1,5 detik. Tinggal ganti video.", aspect = AspectOption.PORTRAIT, filter = FilterType.BRIGHT, slotMs = 1500L),
+        TemplatePreset("vlog", "Vlog Singkat", "Tiap video otomatis jadi potongan 3 detik dalam format vertikal.", aspect = AspectOption.PORTRAIT, slotMs = 3000L),
     )
 }

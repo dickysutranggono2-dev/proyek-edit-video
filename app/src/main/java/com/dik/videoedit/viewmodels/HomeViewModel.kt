@@ -54,7 +54,13 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
                 return@launch
             }
             val clips = result.clips.map { clip ->
-                if (template != null && template.speed != 1f) clip.copy(speed = template.speed) else clip
+                var c2 = clip
+                if (template != null && template.speed != 1f) c2 = c2.copy(speed = template.speed)
+                // Template slot: tiap video dipotong sepanjang slot (dari awal video).
+                template?.slotMs?.let { slot ->
+                    if (c2.sourceDurationMs > slot) c2 = c2.copy(trimStartMs = 0L, trimEndMs = slot)
+                }
+                c2
             }
             val project = Project(
                 name = clips.first().name.substringBeforeLast('.').ifBlank { "Proyek Baru" }.take(60),
