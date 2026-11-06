@@ -197,7 +197,7 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
                             Icon(Icons.Filled.Lock, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    Text("Fitur premium. Tanpa ini, tulisan \"VideoEdit\" muncul di pojok video.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(if (com.dik.videoedit.AppInfo.UNLOCK_ALL) "Tulisan \"VideoEdit\" tidak akan muncul di pojok video." else "Fitur premium. Tanpa ini, tulisan \"VideoEdit\" muncul di pojok video.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Switch(checked = s.removeWatermark, onCheckedChange = vm::setRemoveWatermark)
             }
@@ -210,7 +210,7 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
                 Text("Durasi ${formatTime(p.totalDurationMs)} • ${p.clips.size} klip", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        if (p.usesPremium) {
+        if (p.usesPremium && !com.dik.videoedit.AppInfo.UNLOCK_ALL) {
             Spacer(Modifier.height(10.dp))
             Text(
                 "Proyek ini memakai filter/efek/transisi premium. Anda akan diminta menonton iklan bila akses premium belum aktif.",

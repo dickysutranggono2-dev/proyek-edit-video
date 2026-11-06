@@ -41,7 +41,7 @@ class ExportViewModel(private val c: AppContainer, private val projectId: String
         val loading: Boolean = true,
         val shortSide: Int = 720,
         val fps: Int = 0,
-        val removeWatermark: Boolean = false,
+        val removeWatermark: Boolean = com.dik.videoedit.AppInfo.UNLOCK_ALL,
         val resolutions: List<Int> = listOf(480, 720, 1080),
         val fpsOptions: List<Int> = listOf(0),
         val sourceFps: Int = 30,

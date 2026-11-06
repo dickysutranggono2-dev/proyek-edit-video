@@ -343,6 +343,7 @@ internal fun AnimationPanel(
 
 @Composable
 private fun PremiumNote(active: Boolean, minutes: Int) {
+    if (com.dik.videoedit.AppInfo.UNLOCK_ALL) return
     Text(
         if (active) "Premium aktif • sekitar $minutes menit lagi" else "Item bergembok membutuhkan menonton 1 iklan (membuka semua fitur premium 30 menit).",
         fontSize = 12.sp,

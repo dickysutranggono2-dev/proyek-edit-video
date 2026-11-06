@@ -136,6 +136,7 @@ fun VideoThumb(uri: String, atMs: Long, modifier: Modifier = Modifier, sizePx: I
 /** Status premium yang diperbarui berkala: (aktif?, sisa menit). */
 @Composable
 fun rememberPremiumStatus(until: Long): Pair<Boolean, Int> {
+    if (com.dik.videoedit.AppInfo.UNLOCK_ALL) return true to 0
     val now by produceState(System.currentTimeMillis()) {
         while (true) {
             value = System.currentTimeMillis()
