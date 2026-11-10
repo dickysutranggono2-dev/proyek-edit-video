@@ -27,7 +27,9 @@ android {
         applicationId = "com.dik.videoedit"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
+        // Di GitHub Actions nomor versi naik otomatis tiap build (-PVERSION_CODE=...), sehingga HP
+        // dan Play Store selalu menerima build baru sebagai update.
+        versionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
         versionName = "1.0.0"
     }
 
@@ -44,6 +46,9 @@ android {
 
     buildTypes {
         debug {
+            // Bila keystore tersedia, APK debug ikut ditandatangani kunci tetap yang sama dengan release,
+            // sehingga bisa di-update langsung di HP tanpa hapus aplikasi (data proyek tidak hilang).
+            if (keystoreProps.isNotEmpty()) signingConfig = signingConfigs.getByName("release")
             // Debug SELALU memakai iklan test
             manifestPlaceholders["admobAppId"] = testAppId
             buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"$testRewardedId\"")

@@ -1,5 +1,6 @@
 package com.dik.videoedit.screens
 
+import com.dik.videoedit.i18n.tr
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -98,7 +99,7 @@ fun ExportScreen(projectId: String, onBack: () -> Unit, onFinish: () -> Unit) {
     }
     val storageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) beginAfterStorage()
-        else Toast.makeText(context, "Izin penyimpanan diperlukan untuk menyimpan ke galeri.", Toast.LENGTH_LONG).show()
+        else Toast.makeText(context, tr("Izin penyimpanan diperlukan untuk menyimpan ke galeri."), Toast.LENGTH_LONG).show()
     }
     val begin = {
         if (Build.VERSION.SDK_INT < 29) storageLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -114,7 +115,7 @@ fun ExportScreen(projectId: String, onBack: () -> Unit, onFinish: () -> Unit) {
         when {
             s.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             project == null -> Column(Modifier.fillMaxSize().padding(32.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Proyek tidak ditemukan.")
+                Text(tr("Proyek tidak ditemukan."))
                 Spacer(Modifier.height(12.dp))
                 SecondaryButton("Kembali", onBack)
             }
@@ -144,10 +145,10 @@ fun ExportScreen(projectId: String, onBack: () -> Unit, onFinish: () -> Unit) {
     if (confirmCancel) {
         AlertDialog(
             onDismissRequest = { confirmCancel = false },
-            title = { Text("Batalkan export?") },
-            text = { Text("Proses yang berjalan akan dihentikan.") },
-            confirmButton = { TextButton(onClick = { confirmCancel = false; vm.cancel() }) { Text("Batalkan Export") } },
-            dismissButton = { TextButton(onClick = { confirmCancel = false }) { Text("Lanjutkan") } },
+            title = { Text(tr("Batalkan export?")) },
+            text = { Text(tr("Proses yang berjalan akan dihentikan.")) },
+            confirmButton = { TextButton(onClick = { confirmCancel = false; vm.cancel() }) { Text(tr("Batalkan Export")) } },
+            dismissButton = { TextButton(onClick = { confirmCancel = false }) { Text(tr("Lanjutkan")) } },
         )
     }
 }
@@ -158,11 +159,11 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali") }
-            Text("Export Video", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(tr("Export Video"), fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(16.dp))
 
-        Text("Resolusi", fontWeight = FontWeight.SemiBold)
+        Text(tr("Resolusi"), fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(480, 720, 1080).forEach { r ->
@@ -174,7 +175,7 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
         }
         Spacer(Modifier.height(16.dp))
 
-        Text("Frame rate (FPS)", fontWeight = FontWeight.SemiBold)
+        Text(tr("Frame rate (FPS)"), fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             s.fpsOptions.forEach { f ->
@@ -184,14 +185,14 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
                 )
             }
         }
-        Text("Hanya opsi yang didukung perangkat dan tidak melebihi FPS video asli.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(tr("Hanya opsi yang didukung perangkat dan tidak melebihi FPS video asli."), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(16.dp))
 
         Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface, shadowElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Hapus watermark", fontWeight = FontWeight.SemiBold)
+                        Text(tr("Hapus watermark"), fontWeight = FontWeight.SemiBold)
                         if (!premiumActive) {
                             Spacer(Modifier.width(6.dp))
                             Icon(Icons.Filled.Lock, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -213,7 +214,7 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
         if (p.usesPremium && !com.dik.videoedit.AppInfo.UNLOCK_ALL) {
             Spacer(Modifier.height(10.dp))
             Text(
-                "Proyek ini memakai filter/efek/transisi premium. Anda akan diminta menonton iklan bila akses premium belum aktif.",
+                tr("Proyek ini memakai filter/efek/transisi premium. Anda akan diminta menonton iklan bila akses premium belum aktif."),
                 fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -233,10 +234,10 @@ private fun RunningView(progress: Int, onCancel: () -> Unit) {
         Spacer(Modifier.weight(1f))
         Icon(Icons.Filled.Movie, null, tint = Blue, modifier = Modifier.size(96.dp))
         Spacer(Modifier.height(16.dp))
-        Text("Mengekspor Video...", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(tr("Mengekspor Video..."), fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Mohon tunggu, proses ini mungkin memakan waktu sebentar.\nJangan tutup aplikasi selama export berjalan.",
+            tr("Mohon tunggu, proses ini mungkin memakan waktu sebentar.\nJangan tutup aplikasi selama export berjalan."),
             textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(28.dp))
@@ -266,7 +267,7 @@ private fun DoneView(done: Phase.Done, onFinish: () -> Unit) {
         primary = "Buka Galeri" to {
             val view = Intent(Intent.ACTION_VIEW).setDataAndType(done.uri, "video/mp4").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             try { context.startActivity(view) } catch (e: Exception) {
-                Toast.makeText(context, "Tidak ada aplikasi untuk membuka video.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, tr("Tidak ada aplikasi untuk membuka video."), Toast.LENGTH_SHORT).show()
             }
         },
         secondary = "Selesai" to onFinish,

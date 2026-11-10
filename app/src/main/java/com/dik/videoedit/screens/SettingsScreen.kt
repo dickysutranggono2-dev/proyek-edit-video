@@ -1,5 +1,7 @@
 package com.dik.videoedit.screens
 
+import com.dik.videoedit.i18n.L10n
+import com.dik.videoedit.i18n.tr
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PrivacyTip
@@ -60,7 +63,7 @@ import com.dik.videoedit.AppInfo
 import com.dik.videoedit.BuildConfig
 import com.dik.videoedit.viewmodels.SettingsViewModel
 
-private enum class Dlg { QUALITY, THEME, PRIVACY, TERMS }
+private enum class Dlg { QUALITY, THEME, LANGUAGE, PRIVACY, TERMS }
 
 private const val PRIVACY_TEXT = """VideoEdit memproses video Anda sepenuhnya di perangkat. Video, musik, dan proyek Anda tidak diunggah ke server kami.
 
@@ -85,21 +88,22 @@ fun SettingsScreen(vm: SettingsViewModel) {
 
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         vm.setNotifications(granted)
-        if (!granted) Toast.makeText(context, "Izin notifikasi ditolak.", Toast.LENGTH_SHORT).show()
+        if (!granted) Toast.makeText(context, tr("Izin notifikasi ditolak."), Toast.LENGTH_SHORT).show()
     }
 
     Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp)) {
-        Text("Pengaturan", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(tr("Pengaturan"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
-        SectionTitle("Umum")
+        SectionTitle(tr("Umum"))
         SettingsCard {
-            SettingRow(Icons.Filled.HighQuality, "Kualitas Video Default", "${s.defaultQuality}p") { dialog = Dlg.QUALITY }
+            SettingRow(Icons.Filled.HighQuality, tr("Kualitas Video Default"), "${s.defaultQuality}p") { dialog = Dlg.QUALITY }
             SettingRow(
-                Icons.Filled.Palette, "Tema Aplikasi",
-                when (s.theme) { "dark" -> "Gelap"; "system" -> "Sistem"; else -> "Terang" },
+                Icons.Filled.Palette, tr("Tema Aplikasi"),
+                tr(when (s.theme) { "dark" -> "Gelap"; "system" -> "Sistem"; else -> "Terang" }),
             ) { dialog = Dlg.THEME }
-            SettingRow(Icons.Filled.Notifications, "Notifikasi", null, trailing = {
+            SettingRow(Icons.Filled.Language, tr("Bahasa"), L10n.languages.first { it.code == L10n.code }.native) { dialog = Dlg.LANGUAGE }
+            SettingRow(Icons.Filled.Notifications, tr("Notifikasi"), null, trailing = {
                 Switch(checked = s.notifications, onCheckedChange = { on ->
                     if (on && Build.VERSION.SDK_INT >= 33) notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
                     else vm.setNotifications(on)
@@ -108,34 +112,46 @@ fun SettingsScreen(vm: SettingsViewModel) {
         }
         Spacer(Modifier.height(20.dp))
 
-        SectionTitle("Tentang")
+        SectionTitle(tr("Tentang"))
         SettingsCard {
-            SettingRow(Icons.Filled.Info, "Versi Aplikasi", "v${BuildConfig.VERSION_NAME}", chevron = false) { }
-            SettingRow(Icons.Filled.PrivacyTip, "Kebijakan Privasi", null) { dialog = Dlg.PRIVACY }
-            SettingRow(Icons.Filled.Description, "Syarat & Ketentuan", null) { dialog = Dlg.TERMS }
-            SettingRow(Icons.Filled.Email, "Hubungi Kami", null) {
+            SettingRow(Icons.Filled.Info, tr("Versi Aplikasi"), "v${BuildConfig.VERSION_NAME}", chevron = false) { }
+            SettingRow(Icons.Filled.PrivacyTip, tr("Kebijakan Privasi"), null) { dialog = Dlg.PRIVACY }
+            SettingRow(Icons.Filled.Description, tr("Syarat & Ketentuan"), null) { dialog = Dlg.TERMS }
+            SettingRow(Icons.Filled.Email, tr("Hubungi Kami"), null) {
                 val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
                     putExtra(Intent.EXTRA_EMAIL, arrayOf(AppInfo.SUPPORT_EMAIL))
                     putExtra(Intent.EXTRA_SUBJECT, "VideoEdit v${BuildConfig.VERSION_NAME}")
                 }
                 try { context.startActivity(intent) } catch (e: Exception) {
-                    Toast.makeText(context, "Tidak ada aplikasi email terpasang.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, tr("Tidak ada aplikasi email terpasang."), Toast.LENGTH_SHORT).show()
                 }
             }
         }
+        Spacer(Modifier.height(28.dp))
+        Text(
+            "${tr("Dibuat oleh")} Dicky Sutranggono",
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 
     when (dialog) {
         Dlg.QUALITY -> ChoiceDialog(
-            "Kualitas Video Default", listOf(480, 720, 1080).map { "${it}p" to it },
+            tr("Kualitas Video Default"), listOf(480, 720, 1080).map { "${it}p" to it },
             selected = s.defaultQuality, onSelect = { vm.setQuality(it); dialog = null }, onDismiss = { dialog = null },
         )
         Dlg.THEME -> ChoiceDialog(
-            "Tema Aplikasi", listOf("Terang" to "light", "Gelap" to "dark", "Ikuti Sistem" to "system"),
+            tr("Tema Aplikasi"), listOf(tr("Terang") to "light", tr("Gelap") to "dark", tr("Ikuti Sistem") to "system"),
             selected = s.theme, onSelect = { vm.setTheme(it); dialog = null }, onDismiss = { dialog = null },
         )
-        Dlg.PRIVACY -> TextDialog("Kebijakan Privasi", PRIVACY_TEXT) { dialog = null }
-        Dlg.TERMS -> TextDialog("Syarat & Ketentuan", TERMS_TEXT) { dialog = null }
+        Dlg.LANGUAGE -> ChoiceDialog(
+            tr("Pilih Bahasa"), L10n.languages.map { it.native to it.code },
+            selected = L10n.code, onSelect = { L10n.setLanguage(context, it); dialog = null }, onDismiss = { dialog = null },
+        )
+        Dlg.PRIVACY -> TextDialog(tr("Kebijakan Privasi"), L10n.long("privacy", PRIVACY_TEXT)) { dialog = null }
+        Dlg.TERMS -> TextDialog(tr("Syarat & Ketentuan"), L10n.long("terms", TERMS_TEXT)) { dialog = null }
         null -> Unit
     }
 }
@@ -201,7 +217,7 @@ private fun <T> ChoiceDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Tutup") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Tutup")) } },
     )
 }
 
@@ -211,6 +227,6 @@ private fun TextDialog(title: String, body: String, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Column(Modifier.verticalScroll(rememberScrollState())) { Text(body, fontSize = 14.sp) } },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Tutup") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Tutup")) } },
     )
 }

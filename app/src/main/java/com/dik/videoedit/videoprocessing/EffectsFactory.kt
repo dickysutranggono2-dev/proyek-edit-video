@@ -64,6 +64,7 @@ object EffectsFactory {
                 add(Contrast(0.10f))
             }
         }
+        LookLut.effect(p)?.let { add(it) }
     }
 
     /**

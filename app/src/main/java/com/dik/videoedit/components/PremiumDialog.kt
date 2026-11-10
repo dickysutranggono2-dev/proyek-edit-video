@@ -1,5 +1,6 @@
 package com.dik.videoedit.components
 
+import com.dik.videoedit.i18n.tr
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -81,10 +82,10 @@ fun PremiumDialog(onDismiss: () -> Unit, onGranted: () -> Unit) {
                     contentAlignment = Alignment.Center,
                 ) { Icon(Icons.Filled.WorkspacePremium, null, tint = Gold, modifier = Modifier.size(64.dp)) }
                 Spacer(Modifier.height(16.dp))
-                Text("Buka Fitur Premium", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text(tr("Buka Fitur Premium"), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Tonton iklan untuk membuka fitur premium berikut selama 30 menit:",
+                    tr("Tonton iklan untuk membuka fitur premium berikut selama 30 menit:"),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(20.dp))
@@ -122,7 +123,7 @@ fun PremiumDialog(onDismiss: () -> Unit, onGranted: () -> Unit) {
                         if (adState == AdState.Ready) {
                             val activity = context.findActivity()
                             if (activity == null) {
-                                Toast.makeText(context, "Tidak dapat menampilkan iklan.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, tr("Tidak dapat menampilkan iklan."), Toast.LENGTH_SHORT).show()
                             } else {
                                 showing = true
                                 container.ads.show(

@@ -63,10 +63,18 @@ data class TextItem(
     val plain: Boolean = false,
     /** Path file gambar (overlay foto) di penyimpanan aplikasi; null untuk teks/stiker emoji. */
     val imagePath: String? = null,
+    /** Keterangan (subtitle) tampil hanya pada [startMs]..[endMs] di timeline. */
+    val caption: Boolean = false,
+    val startMs: Long = 0L,
+    val endMs: Long = Long.MAX_VALUE,
+    val bold: Boolean = false,
+    /** Warna latar khusus (ARGB); null = ikuti aturan bawaan. */
+    val bg: Int? = null,
 ) {
     /** Latar semi-transparan agar teks tetap terbaca di video terang/gelap. */
     val backgroundColor: Int
         get() = when {
+            bg != null -> bg
             plain -> 0x00000000
             color == 0xFF000000.toInt() -> 0x66FFFFFF
             else -> 0x66000000
@@ -182,6 +190,10 @@ data class Project(
     val animation: AnimationType = AnimationType.NONE,
     /** Filter pengurang bising untuk semua audio (diterapkan saat export). */
     val noiseReduction: Boolean = false,
+    /** Id filter preset (lihat [Looks]); kosong = tanpa preset. */
+    val look: String = "",
+    val lookStrength: Float = 1f,
+    val adjust: Adjust = Adjust(),
 ) {
     val totalDurationMs: Long get() = clips.sumOf { it.effectiveMs }
 

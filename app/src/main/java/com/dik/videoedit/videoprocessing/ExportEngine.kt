@@ -6,7 +6,9 @@ import android.graphics.BitmapFactory
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
+import android.graphics.Typeface
 import android.text.style.BackgroundColorSpan
+import android.text.style.StyleSpan
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import androidx.media3.common.Effect
@@ -124,7 +126,8 @@ class ExportEngine(private val context: Context) {
         videoEffects += EffectsFactory.postEffects(p, min(w, h))
 
         val overlays = mutableListOf<TextureOverlay>()
-        p.texts.forEach { item -> itemOverlay(item, w, h)?.let { overlays += it } }
+        p.texts.filter { !it.caption }.forEach { item -> itemOverlay(item, w, h)?.let { overlays += it } }
+        overlays += captionOverlays(p.texts.filter { it.caption }, w, h)
         if (!o.removeWatermark) overlays += watermarkOverlay(w, h)
         if (overlays.isNotEmpty()) videoEffects += OverlayEffect(overlays)
 
@@ -241,6 +244,52 @@ class ExportEngine(private val context: Context) {
             .setBackgroundFrameAnchor(t.anchorX, t.position.anchorY)
             .build()
         return TextOverlay.createStaticTextOverlay(s, settings)
+    }
+
+    /**
+     * Keterangan dikelompokkan menurut gaya (posisi, warna, ukuran): satu overlay per kelompok yang
+     * mengganti teksnya sesuai waktu, dan transparan saat tidak ada keterangan aktif.
+     */
+    private fun captionOverlays(captions: List<TextItem>, w: Int, h: Int): List<TextureOverlay> =
+        captions.groupBy { listOf(it.position, it.anchorX, it.color, it.size, it.bold, it.bg) }
+            .values.map { group -> TimedCaptionOverlay(group, w, h) }
+
+    private class TimedCaptionOverlay(private val items: List<TextItem>, w: Int, h: Int) : TextOverlay() {
+        private val spans: Map<String, SpannableString>
+        private val blank = SpannableString(" ")
+        private val shown: OverlaySettings
+        private val hidden: OverlaySettings
+
+        init {
+            val shortSide = min(w, h).toFloat()
+            spans = items.associate { t ->
+                val px = TextFit.fitPx(t.text, shortSide * t.heightFraction, w * 0.92f)
+                val s = SpannableString(t.text)
+                val flag = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                s.setSpan(ForegroundColorSpan(t.color), 0, s.length, flag)
+                s.setSpan(BackgroundColorSpan(t.backgroundColor), 0, s.length, flag)
+                s.setSpan(AbsoluteSizeSpan(px.roundToInt(), false), 0, s.length, flag)
+                if (t.bold) s.setSpan(StyleSpan(Typeface.BOLD), 0, s.length, flag)
+                t.id to s
+            }
+            val first = items.first()
+            val base = OverlaySettings.Builder()
+                .setOverlayFrameAnchor(0f, 0f)
+                .setBackgroundFrameAnchor(first.anchorX, first.position.anchorY)
+            shown = base.build()
+            hidden = base.setAlphaScale(0f).build()
+        }
+
+        private fun active(us: Long): TextItem? {
+            val ms = us / 1000L
+            return items.firstOrNull { ms >= it.startMs && ms < it.endMs }
+        }
+
+        override fun getText(presentationTimeUs: Long): SpannableString =
+            active(presentationTimeUs)?.let { spans[it.id] } ?: blank
+
+        override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings =
+            if (active(presentationTimeUs) == null) hidden else shown
     }
 
     /** Teks, stiker emoji, atau overlay foto. Null bila file gambar tidak bisa dibaca. */

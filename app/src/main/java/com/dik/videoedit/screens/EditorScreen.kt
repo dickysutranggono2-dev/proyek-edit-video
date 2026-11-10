@@ -1,5 +1,6 @@
 package com.dik.videoedit.screens
 
+import com.dik.videoedit.i18n.tr
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.FilterVintage
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
@@ -113,7 +115,7 @@ import com.dik.videoedit.videoprocessing.TextFit
 import com.dik.videoedit.viewmodels.EditorViewModel
 import kotlinx.coroutines.delay
 
-enum class Tool { CROP, SPEED, CLIP_VOLUME, AUDIO_VOLUME, AUDIO_FADE, TEXT, STICKER, ANIMATION, FILTER, EFFECT }
+enum class Tool { CROP, SPEED, CLIP_VOLUME, AUDIO_VOLUME, AUDIO_FADE, TEXT, CAPTION, STICKER, ANIMATION, FILTER, EFFECT }
 
 private class ToolItem(val label: String, val icon: ImageVector, val enabled: Boolean = true, val onClick: () -> Unit)
 
@@ -135,9 +137,9 @@ fun EditorScreen(projectId: String, onBack: () -> Unit, onExport: () -> Unit) {
             Modifier.fillMaxSize().padding(32.dp),
             verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Proyek tidak dapat dibuka. Video sumbernya mungkin sudah dihapus atau dipindahkan.")
+            Text(tr("Proyek tidak dapat dibuka. Video sumbernya mungkin sudah dihapus atau dipindahkan."))
             Spacer(Modifier.height(16.dp))
-            Button(onClick = onBack) { Text("Kembali") }
+            Button(onClick = onBack) { Text(tr("Kembali")) }
         }
         else -> EditorContent(vm, ui, project, snackbar, onBack, onExport)
     }
@@ -208,6 +210,9 @@ private fun EditorContent(
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.addImageOverlay(uri)
     }
+    val pickCaptions = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.importCaptions(uri, com.dik.videoedit.models.CaptionStyles.all.first())
+    }
     val launchAddVideo = { addVideo.launch(arrayOf("video/*")) }
     val launchPickAudio = { pickAudio.launch(arrayOf("audio/*")) }
     // Ambil suara dari video lain di penyimpanan (seperti "Ekstrak audio" di CapCut).
@@ -230,7 +235,7 @@ private fun EditorContent(
                     onClick = { controller.pause(); onExport() },
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.height(40.dp),
-                ) { Text("Export", fontWeight = FontWeight.SemiBold) }
+                ) { Text(tr("Export"), fontWeight = FontWeight.SemiBold) }
             }
 
             // Preview
@@ -254,7 +259,7 @@ private fun EditorContent(
                         },
                         modifier = Modifier.matchParentSize(),
                     )
-                    TextOverlays(project)
+                    TextOverlays(project) { posState.longValue }
                     trimPreview?.let { TrimFrameOverlay(it, project.aspect != AspectOption.ORIGINAL) }
                     if (!isPlaying && trimPreview == null) {
                         Box(
@@ -332,33 +337,34 @@ private fun EditorContent(
             }
             val items: List<ToolItem> = when (ui.focus) {
                 Focus.CLIP -> listOf(
-                    ToolItem("Pisah", Icons.Filled.VerticalSplit, onClick = splitNow),
-                    ToolItem("Kecepatan", Icons.Filled.Speed) { tool = Tool.SPEED },
-                    ToolItem("Volume", Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.CLIP_VOLUME },
-                    ToolItem("Ekstrak Audio", Icons.Filled.GraphicEq) { vm.extractAudio(ui.selected) },
-                    ToolItem("Mundur", Icons.AutoMirrored.Filled.ArrowBack, enabled = ui.selected > 0) { vm.moveSelected(-1) },
-                    ToolItem("Maju", Icons.AutoMirrored.Filled.ArrowForward, enabled = ui.selected < project.clips.lastIndex) { vm.moveSelected(1) },
-                    ToolItem("Hapus", Icons.Filled.Delete, enabled = project.clips.size > 1) { vm.deleteSelected() },
+                    ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
+                    ToolItem(tr("Kecepatan"), Icons.Filled.Speed) { tool = Tool.SPEED },
+                    ToolItem(tr("Volume"), Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.CLIP_VOLUME },
+                    ToolItem(tr("Ekstrak Audio"), Icons.Filled.GraphicEq) { vm.extractAudio(ui.selected) },
+                    ToolItem(tr("Mundur"), Icons.AutoMirrored.Filled.ArrowBack, enabled = ui.selected > 0) { vm.moveSelected(-1) },
+                    ToolItem(tr("Maju"), Icons.AutoMirrored.Filled.ArrowForward, enabled = ui.selected < project.clips.lastIndex) { vm.moveSelected(1) },
+                    ToolItem(tr("Hapus"), Icons.Filled.Delete, enabled = project.clips.size > 1) { vm.deleteSelected() },
                 )
                 Focus.AUDIO -> listOf(
-                    ToolItem("Pisah", Icons.Filled.VerticalSplit, onClick = splitNow),
-                    ToolItem("Volume", Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.AUDIO_VOLUME },
-                    ToolItem("Fade", Icons.Filled.Tune) { tool = Tool.AUDIO_FADE },
-                    ToolItem("Duplikat", Icons.Filled.ContentCopy) { selectedAudioTrack?.let { vm.duplicateAudio(it.id) } },
-                    ToolItem("Hapus", Icons.Filled.Delete) { selectedAudioTrack?.let { vm.removeAudio(it.id) } },
+                    ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
+                    ToolItem(tr("Volume"), Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.AUDIO_VOLUME },
+                    ToolItem(tr("Fade"), Icons.Filled.Tune) { tool = Tool.AUDIO_FADE },
+                    ToolItem(tr("Duplikat"), Icons.Filled.ContentCopy) { selectedAudioTrack?.let { vm.duplicateAudio(it.id) } },
+                    ToolItem(tr("Hapus"), Icons.Filled.Delete) { selectedAudioTrack?.let { vm.removeAudio(it.id) } },
                 )
                 Focus.NONE -> listOf(
-                    ToolItem("Potong", Icons.Filled.ContentCut) { vm.focusClip(playingIndex) },
-                    ToolItem("Pisah", Icons.Filled.VerticalSplit, onClick = splitNow),
-                    ToolItem("Musik", Icons.Filled.MusicNote) { launchPickAudio() },
-                    ToolItem("Dari Video", Icons.Filled.GraphicEq) { launchPickVideoAudio() },
-                    ToolItem("Crop", Icons.Filled.Crop) { tool = Tool.CROP },
-                    ToolItem("Kecepatan", Icons.Filled.Speed) { tool = Tool.SPEED },
-                    ToolItem("Teks", Icons.Filled.TextFields) { tool = Tool.TEXT },
-                    ToolItem("Stiker", Icons.Filled.EmojiEmotions) { tool = Tool.STICKER },
-                    ToolItem("Animasi", Icons.Filled.Animation) { tool = Tool.ANIMATION },
-                    ToolItem("Filter", Icons.Filled.FilterVintage) { tool = Tool.FILTER },
-                    ToolItem("Efek", Icons.Filled.AutoAwesome) { tool = Tool.EFFECT },
+                    ToolItem(tr("Potong"), Icons.Filled.ContentCut) { vm.focusClip(playingIndex) },
+                    ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
+                    ToolItem(tr("Musik"), Icons.Filled.MusicNote) { launchPickAudio() },
+                    ToolItem(tr("Dari Video"), Icons.Filled.GraphicEq) { launchPickVideoAudio() },
+                    ToolItem(tr("Crop"), Icons.Filled.Crop) { tool = Tool.CROP },
+                    ToolItem(tr("Kecepatan"), Icons.Filled.Speed) { tool = Tool.SPEED },
+                    ToolItem(tr("Teks"), Icons.Filled.TextFields) { tool = Tool.TEXT },
+                    ToolItem(tr("Keterangan"), Icons.Filled.Subtitles) { tool = Tool.CAPTION },
+                    ToolItem(tr("Stiker"), Icons.Filled.EmojiEmotions) { tool = Tool.STICKER },
+                    ToolItem(tr("Animasi"), Icons.Filled.Animation) { tool = Tool.ANIMATION },
+                    ToolItem(tr("Filter"), Icons.Filled.FilterVintage) { tool = Tool.FILTER },
+                    ToolItem(tr("Efek"), Icons.Filled.AutoAwesome) { tool = Tool.EFFECT },
                 )
             }
             Row(
@@ -389,7 +395,8 @@ private fun EditorContent(
                     Tool.TEXT -> TextPanel(vm, project)
                     Tool.STICKER -> StickerPanel(vm, project, onPickImage = { pickImage.launch(arrayOf("image/*")) })
                     Tool.ANIMATION -> AnimationPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
-                    Tool.FILTER -> FilterPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
+                    Tool.CAPTION -> CaptionPanel(vm, project, positionMs = { posState.longValue }, onImport = { pickCaptions.launch(arrayOf("*/*")) })
+                    Tool.FILTER -> FilterPanel(vm, project)
                     Tool.EFFECT -> EffectPanel(vm, project, premiumActive, premiumMinutes, requirePremium)
                 }
             }
@@ -463,14 +470,15 @@ private fun TrimFrameOverlay(preview: TrimPreview, crop: Boolean) {
  * rumus yang sama dengan export.
  */
 @Composable
-private fun TextOverlays(project: Project) {
+private fun TextOverlays(project: Project, positionMs: () -> Long) {
     if (project.texts.isEmpty()) return
+    val now = positionMs()
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val wPx = with(density) { maxWidth.toPx() }
         val hPx = with(density) { maxHeight.toPx() }
         val shortSide = minOf(wPx, hPx)
-        project.texts.forEach { t ->
+        project.texts.filter { !it.caption || (now >= it.startMs && now < it.endMs) }.forEach { t ->
             val align = BiasAlignment(t.anchorX, -t.position.anchorY)
             val path = t.imagePath
             if (path != null) {

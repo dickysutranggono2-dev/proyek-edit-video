@@ -12,6 +12,7 @@ class VideoEditApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+        com.dik.videoedit.i18n.L10n.init(this)
         container = AppContainer(this)
         container.initAds()
     }

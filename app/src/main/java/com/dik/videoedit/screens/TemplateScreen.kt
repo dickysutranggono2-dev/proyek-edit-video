@@ -1,5 +1,6 @@
 package com.dik.videoedit.screens
 
+import com.dik.videoedit.i18n.tr
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -72,9 +73,9 @@ fun TemplateScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
     ) {
         item {
             Column {
-                Text("Template", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(tr("Template"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "Pilih gaya awal, lalu pilih video dari galeri. Semua pengaturan masih bisa diubah di editor.",
+                    tr("Pilih gaya awal, lalu pilih video dari galeri. Semua pengaturan masih bisa diubah di editor."),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.padding(top = 8.dp))

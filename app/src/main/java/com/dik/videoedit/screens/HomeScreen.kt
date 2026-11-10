@@ -1,5 +1,6 @@
 package com.dik.videoedit.screens
 
+import com.dik.videoedit.i18n.tr
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -77,9 +78,9 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
                 Spacer(Modifier.height(16.dp))
                 AppLogo(92.dp)
                 Spacer(Modifier.height(10.dp))
-                Text("VideoEdit", fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
+                Text(tr("VideoEdit"), fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
                 Text(
-                    "Edit video dengan mudah\ndan cepat!", textAlign = TextAlign.Center,
+                    tr("Edit video dengan mudah\ndan cepat!"), textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(22.dp))
@@ -92,7 +93,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
         }
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Proyek Terakhir", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(tr("Proyek Terakhir"), fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 if (projects.size > 3) {
                     Row(Modifier.clickable { showAll = !showAll }, verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -107,7 +108,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
         if (projects.isEmpty()) {
             item {
                 Text(
-                    "Belum ada proyek. Tekan \"Proyek Baru\" untuk memilih video dari galeri.",
+                    tr("Belum ada proyek. Tekan \"Proyek Baru\" untuk memilih video dari galeri."),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp),
                 )
             }
@@ -123,7 +124,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
                 Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
                     Spacer(Modifier.width(16.dp))
-                    Text("Membaca video…")
+                    Text(tr("Membaca video…"))
                 }
             }
         }
@@ -133,7 +134,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
         var name by remember(p.id) { mutableStateOf(p.name) }
         AlertDialog(
             onDismissRequest = { renaming = null },
-            title = { Text("Ganti Nama Proyek") },
+            title = { Text(tr("Ganti Nama Proyek")) },
             text = {
                 OutlinedTextField(
                     value = name, onValueChange = { name = it.take(60) }, singleLine = true,
@@ -141,19 +142,19 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
                 )
             },
             confirmButton = {
-                TextButton(onClick = { vm.rename(p, name); renaming = null }, enabled = name.isNotBlank()) { Text("Simpan") }
+                TextButton(onClick = { vm.rename(p, name); renaming = null }, enabled = name.isNotBlank()) { Text(tr("Simpan")) }
             },
-            dismissButton = { TextButton(onClick = { renaming = null }) { Text("Batal") } },
+            dismissButton = { TextButton(onClick = { renaming = null }) { Text(tr("Batal")) } },
         )
     }
 
     deleting?.let { p ->
         AlertDialog(
             onDismissRequest = { deleting = null },
-            title = { Text("Hapus proyek?") },
+            title = { Text(tr("Hapus proyek?")) },
             text = { Text("\"${p.name}\" akan dihapus dari aplikasi. Video asli di galeri tidak ikut terhapus.") },
-            confirmButton = { TextButton(onClick = { vm.delete(p.id); deleting = null }) { Text("Hapus") } },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Batal") } },
+            confirmButton = { TextButton(onClick = { vm.delete(p.id); deleting = null }) { Text(tr("Hapus")) } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(tr("Batal")) } },
         )
     }
 }
@@ -181,8 +182,8 @@ private fun ProjectRow(p: Project, onClick: () -> Unit, onRename: () -> Unit, on
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "Menu proyek") }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Ganti Nama") }, onClick = { menu = false; onRename() })
-                    DropdownMenuItem(text = { Text("Hapus") }, onClick = { menu = false; onDelete() })
+                    DropdownMenuItem(text = { Text(tr("Ganti Nama")) }, onClick = { menu = false; onRename() })
+                    DropdownMenuItem(text = { Text(tr("Hapus")) }, onClick = { menu = false; onDelete() })
                 }
             }
         }

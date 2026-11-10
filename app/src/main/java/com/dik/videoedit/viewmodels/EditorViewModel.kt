@@ -1,5 +1,6 @@
 package com.dik.videoedit.viewmodels
 
+import com.dik.videoedit.i18n.tr
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +12,11 @@ import com.dik.videoedit.models.AspectOption
 import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.EffectType
+import com.dik.videoedit.models.Adjust
+import com.dik.videoedit.models.AdjustKey
+import com.dik.videoedit.models.CaptionStyle
 import com.dik.videoedit.models.FilterType
+import com.dik.videoedit.storage.Srt
 import com.dik.videoedit.models.Focus
 import com.dik.videoedit.models.Project
 import com.dik.videoedit.models.SpeedRamp
@@ -178,7 +183,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun split(index: Int, atSourceMs: Long) {
         val cur = _state.value.project ?: return
         if (ProjectOps.split(cur, index, atSourceMs) == null) {
-            messages.tryEmit("Geser posisi putar ke tengah klip dulu, lalu tekan Pisah.")
+            messages.tryEmit(tr("Geser posisi putar ke tengah klip dulu, lalu tekan Pisah."))
             return
         }
         commit(selected = index) { ProjectOps.split(it, index, atSourceMs) ?: it }
@@ -187,7 +192,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun deleteSelected() {
         val cur = _state.value.project ?: return
         if (cur.clips.size <= 1) {
-            messages.tryEmit("Proyek harus memiliki minimal satu klip.")
+            messages.tryEmit(tr("Proyek harus memiliki minimal satu klip."))
             return
         }
         val i = _state.value.selected
@@ -244,9 +249,9 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             val hasSound = imported != null && withContext(Dispatchers.IO) { VideoProbe.hasAudio(c.context, uri) }
             _state.update { it.copy(busy = false) }
             if (imported == null) {
-                messages.tryEmit("File tidak dapat dibuka.")
+                messages.tryEmit(tr("File tidak dapat dibuka."))
             } else if (!hasSound) {
-                messages.tryEmit("File ini tidak memiliki suara.")
+                messages.tryEmit(tr("File ini tidak memiliki suara."))
             } else {
                 val track = imported.copy(
                     extracted = isVideo,
@@ -254,7 +259,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
                 )
                 commit { p -> p.copy(audio = p.audio + track.copy(startMs = atMs.coerceIn(0L, p.totalDurationMs))) }
                 focusAudio(track.id)
-                if (isVideo) messages.tryEmit("Suara dari video ditambahkan sebagai track audio.")
+                if (isVideo) messages.tryEmit(tr("Suara dari video ditambahkan sebagai track audio."))
             }
         }
     }
@@ -275,7 +280,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             val hasAudio = withContext(Dispatchers.IO) { VideoProbe.hasAudio(c.context, Uri.parse(clip.uri)) }
             _state.update { it.copy(busy = false) }
             if (!hasAudio) {
-                messages.tryEmit("Klip ini tidak memiliki suara untuk diekstrak.")
+                messages.tryEmit(tr("Klip ini tidak memiliki suara untuk diekstrak."))
                 return@launch
             }
             val track = AudioTrack(
@@ -293,7 +298,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
                 ProjectOps.updateClip(p, clipIndex) { it.copy(volume = 0f) }.copy(audio = p.audio + track)
             }
             focusAudio(track.id)
-            messages.tryEmit("Audio diekstrak ke track audio. Suara asli klip dibisukan.")
+            messages.tryEmit(tr("Audio diekstrak ke track audio. Suara asli klip dibisukan."))
         }
     }
 
@@ -313,7 +318,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun splitAudio(id: String, atMs: Long) {
         val cur = _state.value.project ?: return
         if (ProjectOps.splitAudio(cur, id, atMs) == null) {
-            messages.tryEmit("Geser playhead ke bagian tengah klip audio dulu, lalu tekan Pisah.")
+            messages.tryEmit(tr("Geser playhead ke bagian tengah klip audio dulu, lalu tekan Pisah."))
             return
         }
         commit { ProjectOps.splitAudio(it, id, atMs) ?: it }
@@ -354,7 +359,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     /** Overlay foto: gambar diperkecil lalu disalin ke penyimpanan aplikasi agar tetap ada setelah aplikasi ditutup. */
     fun addImageOverlay(uri: Uri) {
         val cur = _state.value.project ?: return
-        if (cur.texts.size >= MAX_ITEMS) {
+        if (cur.texts.count { !it.caption } >= MAX_ITEMS) {
             messages.tryEmit("Maksimal $MAX_ITEMS teks/stiker/overlay.")
             return
         }
@@ -363,7 +368,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             val path = withContext(Dispatchers.IO) { saveOverlayImage(uri) }
             _state.update { it.copy(busy = false) }
             if (path == null) {
-                messages.tryEmit("Gambar tidak dapat dibuka.")
+                messages.tryEmit(tr("Gambar tidak dapat dibuka."))
             } else {
                 commit { p -> p.copy(texts = p.texts + TextItem(text = "", plain = true, imagePath = path, position = com.dik.videoedit.models.TextPosition.CENTER)) }
             }
@@ -392,11 +397,67 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
 
     private companion object {
         const val MAX_ITEMS = 12
+        const val MAX_CAPTIONS = 80
     }
 
     fun removeText(id: String) = commit { p -> p.copy(texts = p.texts.filterNot { it.id == id }) }
 
     fun setFilter(f: FilterType) = commit { it.copy(filter = f) }
+
+    // ---- filter preset & penyesuaian warna ----------------------------------------------------
+
+    fun setLook(id: String) = commit { it.copy(look = id, filter = FilterType.NONE, lookStrength = if (id.isEmpty()) 1f else it.lookStrength) }
+
+    fun setLookStrength(v: Float) = commit { it.copy(lookStrength = v.coerceIn(0f, 1f)) }
+
+    fun setAdjust(key: AdjustKey, v: Float) = commit { it.copy(adjust = key.set(it.adjust, v.coerceIn(-1f, 1f))) }
+
+    fun resetAdjust() = commit { it.copy(adjust = Adjust()) }
+
+    // ---- keterangan (subtitle) -------------------------------------------------------------------
+
+    private fun captionItem(text: String, startMs: Long, endMs: Long, style: CaptionStyle) = TextItem(
+        text = text.take(60), position = style.position, color = style.color, size = style.size,
+        caption = true, startMs = startMs, endMs = endMs, bold = style.bold, bg = style.bg,
+    )
+
+    fun addCaption(text: String, startMs: Long, durationMs: Long, style: CaptionStyle) {
+        val cur = _state.value.project ?: return
+        if (cur.texts.count { it.caption } >= MAX_CAPTIONS) {
+            messages.tryEmit("Maksimal $MAX_CAPTIONS keterangan.")
+            return
+        }
+        val total = cur.totalDurationMs
+        val s = startMs.coerceIn(0L, (total - 300L).coerceAtLeast(0L))
+        val e = (s + durationMs).coerceAtMost(total).coerceAtLeast(s + 300L)
+        commit { it.copy(texts = it.texts + captionItem(text, s, e, style)) }
+    }
+
+    fun setCaptionStyle(style: CaptionStyle) = commit { p ->
+        p.copy(texts = p.texts.map {
+            if (it.caption) it.copy(position = style.position, color = style.color, size = style.size, bold = style.bold, bg = style.bg) else it
+        })
+    }
+
+    /** Impor file .srt/.vtt: semua baris keterangan ditambahkan (menggantikan keterangan lama). */
+    fun importCaptions(uri: Uri, style: CaptionStyle) {
+        val cur = _state.value.project ?: return
+        viewModelScope.launch {
+            val content = withContext(Dispatchers.IO) {
+                runCatching { c.context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } }.getOrNull()
+            }
+            val cues = content?.let { Srt.parse(it) }.orEmpty()
+            if (cues.isEmpty()) {
+                messages.tryEmit(tr("File keterangan tidak terbaca. Gunakan file .srt atau .vtt."))
+                return@launch
+            }
+            val total = cur.totalDurationMs
+            val items = cues.filter { it.startMs < total }.take(MAX_CAPTIONS)
+                .map { captionItem(it.text, it.startMs, it.endMs.coerceAtMost(total), style) }
+            commit { p -> p.copy(texts = p.texts.filterNot { it.caption } + items) }
+            messages.tryEmit("${items.size} keterangan diimpor.")
+        }
+    }
 
     fun setEffect(e: EffectType) = commit { it.copy(effect = e) }
 

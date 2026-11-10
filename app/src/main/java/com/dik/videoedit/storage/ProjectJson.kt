@@ -4,6 +4,8 @@ import com.dik.videoedit.models.AnimationType
 import com.dik.videoedit.models.AspectOption
 import com.dik.videoedit.models.Clip
 import com.dik.videoedit.models.EffectType
+import com.dik.videoedit.models.Adjust
+import com.dik.videoedit.models.AdjustKey
 import com.dik.videoedit.models.FilterType
 import com.dik.videoedit.models.AudioTrack
 import com.dik.videoedit.models.Project
@@ -29,6 +31,11 @@ object ProjectJson {
         put("aspect", p.aspect.name)
         put("rotation", p.rotation)
         put("filter", p.filter.name)
+        put("look", p.look)
+        put("lookStrength", p.lookStrength.toDouble())
+        put("adjust", JSONObject().apply {
+            AdjustKey.entries.forEach { put(it.name, it.get(p.adjust).toDouble()) }
+        })
         put("effect", p.effect.name)
         put("transition", p.transition.name)
         put("animation", p.animation.name)
@@ -79,6 +86,13 @@ object ProjectJson {
                     put("anchorX", t.anchorX.toDouble())
                     put("plain", t.plain)
                     t.imagePath?.let { put("imagePath", it) }
+                    if (t.caption) {
+                        put("caption", true)
+                        put("startMs", t.startMs)
+                        put("endMs", t.endMs)
+                        put("bold", t.bold)
+                        t.bg?.let { put("bg", it) }
+                    }
                 })
             }
         })
@@ -115,6 +129,11 @@ object ProjectJson {
                 anchorX = t.optDouble("anchorX", 0.0).toFloat(),
                 plain = t.optBoolean("plain", false),
                 imagePath = if (t.has("imagePath")) t.getString("imagePath") else null,
+                caption = t.optBoolean("caption", false),
+                startMs = t.optLong("startMs", 0L),
+                endMs = t.optLong("endMs", Long.MAX_VALUE),
+                bold = t.optBoolean("bold", false),
+                bg = if (t.has("bg")) t.getInt("bg") else null,
             )
         }
         val audioJson = o.optJSONArray("audio") ?: JSONArray()
@@ -160,6 +179,11 @@ object ProjectJson {
             audio = audio,
             texts = texts,
             filter = o.optString("filter").toEnum(FilterType.NONE),
+            look = o.optString("look", ""),
+            lookStrength = o.optDouble("lookStrength", 1.0).toFloat().coerceIn(0f, 1f),
+            adjust = o.optJSONObject("adjust")?.let { j ->
+                AdjustKey.entries.fold(Adjust()) { acc, k -> k.set(acc, j.optDouble(k.name, 0.0).toFloat().coerceIn(-1f, 1f)) }
+            } ?: Adjust(),
             effect = o.optString("effect").toEnum(EffectType.NONE),
             transition = o.optString("transition").toEnum(TransitionType.CUT),
             animation = o.optString("animation").toEnum(AnimationType.NONE),

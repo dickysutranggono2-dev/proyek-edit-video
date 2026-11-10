@@ -1,5 +1,6 @@
 package com.dik.videoedit.components
 
+import com.dik.videoedit.i18n.tr
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -729,6 +730,6 @@ private fun AddAudioBar(modifier: Modifier, onClick: () -> Unit) {
     ) {
         Icon(Icons.Filled.Add, null, tint = tint, modifier = Modifier.size(14.dp))
         Spacer(Modifier.width(4.dp))
-        Text("Tambah audio", fontSize = 11.sp, color = tint, maxLines = 1)
+        Text(tr("Tambah audio"), fontSize = 11.sp, color = tint, maxLines = 1)
     }
 }
