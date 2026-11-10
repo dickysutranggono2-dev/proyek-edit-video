@@ -1,13 +1,28 @@
 package com.dik.videoedit.videoprocessing
 
 import android.graphics.Color
+import android.content.Context
 import androidx.media3.common.Effect
+import androidx.media3.effect.Contrast
+import androidx.media3.effect.GlEffect
+import androidx.media3.effect.GlShaderProgram
 import androidx.media3.effect.SingleColorLut
 import com.dik.videoedit.models.Adjust
 import com.dik.videoedit.models.FilterPreset
 import com.dik.videoedit.models.Looks
 import com.dik.videoedit.models.Project
 import kotlin.math.pow
+
+/**
+ * Efek LUT yang membuat tekstur LUT BARU setiap kali pipeline GPU dibuat. SingleColorLut yang dipakai
+ * ulang akan menghapus teksturnya sendiri saat pipeline lama dilepas (mis. pindah klip), sehingga
+ * pipeline baru crash. Video HDR dilewatkan tanpa filter karena LUT bawaan Media3 tidak mendukung HDR.
+ */
+private class LookLutEffect(private val cube: Array<Array<IntArray>>) : GlEffect {
+    override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram =
+        if (useHdr) Contrast(0f).toGlShaderProgram(context, useHdr)
+        else SingleColorLut.createFromCube(cube).toGlShaderProgram(context, useHdr)
+}
 
 /**
  * Filter preset + penyesuaian manual dihitung menjadi satu tabel warna 3D (LUT). Satu efek GPU
@@ -102,6 +117,6 @@ object LookLut {
             transform(c, preset, p.lookStrength, p.adjust)
             Color.rgb((c[0] * 255f + 0.5f).toInt(), (c[1] * 255f + 0.5f).toInt(), (c[2] * 255f + 0.5f).toInt())
         } } }
-        return SingleColorLut.createFromCube(cube)
+        return LookLutEffect(cube)
     }
 }

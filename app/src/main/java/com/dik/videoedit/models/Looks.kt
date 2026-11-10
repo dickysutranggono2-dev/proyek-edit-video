@@ -87,7 +87,7 @@ object Looks {
         h: Float = 0f, sh: Float = 0f, f: Float = 0f, lo: Int = 0, hi: Int = 0, star: Boolean = false,
     ) = FilterPreset(id, label, cat, Adjust(b, c, s, e, w, t, h, sh, f), lo, hi, star)
 
-    val all: List<FilterPreset> = listOf(
+    val all: List<FilterPreset> by lazy { listOf(
         // Kehidupan
         p("jelas", "Jelas", "Kehidupan", c = 0.18f, s = 0.2f, h = -0.1f, sh = 0.15f, star = true),
         p("segar", "Segar", "Kehidupan", b = 0.06f, c = 0.1f, s = 0.28f, w = -0.05f, star = true),
@@ -177,7 +177,7 @@ object Looks {
         val hitIds = listOf("jelas", "noir", "senja", "film_hangat", "laut", "porselen", "retro70", "aksi")
         withExtra + newIds.mapNotNull { id -> list.firstOrNull { it.id == id } }.map { it.copy(category = "Baru", featured = false) } +
             hitIds.mapNotNull { id -> list.firstOrNull { it.id == id } }.map { it.copy(category = "Hit", featured = false) }
-    }
+    } }
 
 
     // ---- filter tambahan: tiap kategori punya resep dasar, lalu diberi variasi bernama --------------
