@@ -392,8 +392,8 @@ private fun LookTab(vm: EditorViewModel, project: Project) {
         }
     }
     Spacer(Modifier.height(10.dp))
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        LookTile("Asli", null, project.look.isEmpty()) { vm.setLook("") }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        LookTile(tr("Asli"), null, project.look.isEmpty()) { vm.setLook("") }
         Looks.inCategory(category).forEach { preset ->
             LookTile(preset.label, preset, project.look == preset.id) { vm.setLook(preset.id) }
         }
@@ -408,22 +408,7 @@ private fun LookTab(vm: EditorViewModel, project: Project) {
 
 @Composable
 private fun LookTile(label: String, preset: FilterPreset?, selected: Boolean, onClick: () -> Unit) {
-    Column(Modifier.width(72.dp).clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(
-            Modifier.size(72.dp, 88.dp).clip(RoundedCornerShape(10.dp))
-                .border(
-                    if (selected) BorderStroke(3.dp, MaterialTheme.colorScheme.primary) else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                    RoundedCornerShape(10.dp),
-                ),
-        ) {
-            SAMPLE_COLORS.forEach { base ->
-                val c = LookLut.transformColor(base, preset, 1f, Adjust())
-                Box(Modifier.weight(1f).fillMaxHeight().background(Color(c)))
-            }
-        }
-        Spacer(Modifier.height(4.dp))
-        Text(label, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-    }
+    FilterChip(selected = selected, onClick = onClick, label = { Text(label, maxLines = 1) })
 }
 
 @Composable
