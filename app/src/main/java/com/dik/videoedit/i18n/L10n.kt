@@ -263,6 +263,244 @@ Rotasi saat ini | Current rotation | Putaran semasa | Rotación actual | Rotaç�
 Terapkan | Apply | Guna | Aplicar | Aplicar | Appliquer | Anwenden | 適用 | 적용 | Применить
 ke semua klip | to all clips | pada semua klip | a todos los clips | a todos os clipes | à tous les clips | auf alle Clips | すべてのクリップに | 모든 클립에 | ко всем клипам
 Pilih Bahasa | Choose Language | Pilih Bahasa | Elegir idioma | Escolher idioma | Choisir la langue | Sprache wählen | 言語を選択 | 언어 선택 | Выбор языка
+Proyek Baru | New Project | Projek Baharu | Proyecto nuevo | Novo projeto | Nouveau projet | Neues Projekt | 新規プロジェクト | 새 프로젝트 | Новый проект
+Lihat Semua | See All | Lihat Semua | Ver todo | Ver tudo | Tout voir | Alle ansehen | すべて表示 | 모두 보기 | Все
+Menu proyek | Project menu | Menu projek | Menú del proyecto | Menu do projeto | Menu du projet | Projektmenü | プロジェクトメニュー | 프로젝트 메뉴 | Меню проекта
+Fitur Premium | Premium Features | Ciri Premium | Funciones premium | Recursos premium | Fonctions premium | Premium-Funktionen | プレミアム機能 | 프리미엄 기능 | Премиум-функции
+Filter Warna Premium | Premium Color Filters | Penapis Warna Premium | Filtros de color premium | Filtros de cor premium | Filtres de couleur premium | Premium-Farbfilter | プレミアムカラーフィルター | 프리미엄 컬러 필터 | Премиум-цветофильтры
+Transisi Keren | Cool Transitions | Peralihan Hebat | Transiciones geniales | Transições legais | Transitions sympas | Coole Übergänge | かっこいいトランジション | 멋진 전환 | Крутые переходы
+Efek Video | Video Effects | Kesan Video | Efectos de vídeo | Efeitos de vídeo | Effets vidéo | Videoeffekte | ビデオエフェクト | 비디오 효과 | Видеоэффекты
+Ekspor Tanpa Watermark | Export Without Watermark | Eksport Tanpa Tera Air | Exportar sin marca de agua | Exportar sem marca d'água | Exporter sans filigrane | Export ohne Wasserzeichen | ウォーターマークなしで書き出し | 워터마크 없이 내보내기 | Экспорт без водяного знака
+Memuat iklan… | Loading ad… | Memuatkan iklan… | Cargando anuncio… | Carregando anúncio… | Chargement de la pub… | Anzeige wird geladen… | 広告を読み込み中… | 광고 불러오는 중… | Загрузка рекламы…
+Iklan siap ditonton. | The ad is ready. | Iklan sedia ditonton. | El anuncio está listo. | O anúncio está pronto. | La pub est prête. | Die Anzeige ist bereit. | 広告の準備ができました。 | 광고가 준비되었습니다. | Реклама готова.
+Tonton Iklan untuk Menggunakan Fitur | Watch an Ad to Use Features | Tonton Iklan untuk Guna Ciri | Ver un anuncio para usar las funciones | Assista a um anúncio para usar os recursos | Regarder une pub pour utiliser les fonctions | Anzeige ansehen, um Funktionen zu nutzen | 広告を見て機能を使う | 광고를 보고 기능 사용 | Смотреть рекламу для доступа
+Muat Ulang Iklan | Reload Ad | Muat Semula Iklan | Recargar anuncio | Recarregar anúncio | Recharger la pub | Anzeige neu laden | 広告を再読み込み | 광고 다시 불러오기 | Перезагрузить рекламу
+Nanti Saja | Not Now | Nanti Sahaja | Ahora no | Agora não | Plus tard | Nicht jetzt | 今はしない | 나중에 | Не сейчас
+Tambah video | Add video | Tambah video | Añadir vídeo | Adicionar vídeo | Ajouter une vidéo | Video hinzufügen | 動画を追加 | 동영상 추가 | Добавить видео
+Reels & Shorts | Reels & Shorts | Reels & Shorts | Reels y Shorts | Reels e Shorts | Reels et Shorts | Reels & Shorts | リール＆ショート | 릴스 & 쇼츠 | Reels и Shorts
+Format vertikal 9:16 untuk Instagram, TikTok, dan YouTube Shorts | Vertical 9:16 format for Instagram, TikTok and YouTube Shorts | Format menegak 9:16 untuk Instagram, TikTok dan YouTube Shorts | Formato vertical 9:16 para Instagram, TikTok y YouTube Shorts | Formato vertical 9:16 para Instagram, TikTok e YouTube Shorts | Format vertical 9:16 pour Instagram, TikTok et YouTube Shorts | Hochformat 9:16 für Instagram, TikTok und YouTube Shorts | Instagram・TikTok・YouTubeショート向けの縦型9:16 | 인스타그램, 틱톡, 유튜브 쇼츠용 세로 9:16 | Вертикальный формат 9:16 для Instagram, TikTok и YouTube Shorts
+Feed Persegi | Square Feed | Suapan Segi Empat | Feed cuadrado | Feed quadrado | Feed carré | Quadratischer Feed | 正方形フィード | 정사각형 피드 | Квадратная лента
+Rasio 1:1 yang pas untuk feed dan postingan | 1:1 ratio, perfect for feeds and posts | Nisbah 1:1 yang sesuai untuk suapan dan hantaran | Proporción 1:1 ideal para feeds y publicaciones | Proporção 1:1 ideal para feeds e posts | Format 1:1 idéal pour les fils et publications | 1:1-Format, ideal für Feeds und Beiträge | フィードや投稿にぴったりの1:1 | 피드와 게시물에 알맞은 1:1 비율 | Формат 1:1 для ленты и публикаций
+Rasio 16:9 untuk YouTube dan layar TV | 16:9 ratio for YouTube and TV screens | Nisbah 16:9 untuk YouTube dan skrin TV | Proporción 16:9 para YouTube y pantallas de TV | Proporção 16:9 para YouTube e telas de TV | Format 16:9 pour YouTube et les écrans TV | 16:9-Format für YouTube und Fernseher | YouTubeやテレビ向けの16:9 | 유튜브와 TV 화면용 16:9 비율 | Формат 16:9 для YouTube и ТВ
+Gerak Lambat | Slow Motion | Gerak Perlahan | Cámara lenta | Câmera lenta | Ralenti | Zeitlupe | スローモーション | 슬로 모션 | Замедленная съёмка
+Kecepatan 0,5x untuk momen yang dramatis | 0.5x speed for dramatic moments | Kelajuan 0.5x untuk detik yang dramatik | Velocidad 0,5x para momentos dramáticos | Velocidade 0,5x para momentos dramáticos | Vitesse 0,5x pour les moments dramatiques | 0,5-fache Geschwindigkeit für dramatische Momente | ドラマチックな瞬間向けの0.5倍速 | 극적인 순간을 위한 0.5배속 | Скорость 0,5x для драматичных моментов
+Timelapse | Timelapse | Selang Masa | Timelapse | Timelapse | Accéléré | Zeitraffer | タイムラプス | 타임랩스 | Таймлапс
+Kecepatan 3x untuk perjalanan atau proses panjang | 3x speed for trips or long processes | Kelajuan 3x untuk perjalanan atau proses panjang | Velocidad 3x para viajes o procesos largos | Velocidade 3x para viagens ou processos longos | Vitesse 3x pour les trajets ou les longs processus | 3-fache Geschwindigkeit für Reisen oder lange Abläufe | 旅行や長い工程向けの3倍速 | 여행이나 긴 과정을 위한 3배속 | Скорость 3x для поездок и долгих процессов
+Cerah & Segar | Bright & Fresh | Cerah & Segar | Brillante y fresco | Brilhante e fresco | Lumineux et frais | Hell & Frisch | 明るく爽やか | 밝고 상쾌하게 | Ярко и свежо
+Filter Cerah agar video lebih hidup | Bright filter to make the video livelier | Penapis Cerah supaya video lebih hidup | Filtro brillante para dar vida al vídeo | Filtro brilhante para deixar o vídeo mais vivo | Filtre lumineux pour un rendu plus vivant | Heller Filter für ein lebendigeres Video | 明るいフィルターで動画を鮮やかに | 밝은 필터로 영상을 생생하게 | Яркий фильтр, чтобы видео стало живее
+Montase Cepat | Quick Montage | Montaj Pantas | Montaje rápido | Montagem rápida | Montage rapide | Schnelle Montage | クイックモンタージュ | 빠른 몽타주 | Быстрый монтаж
+Pilih beberapa video, tiap video otomatis jadi potongan 1,5 detik. Tinggal ganti video. | Pick several videos; each is cut to 1.5 seconds automatically. Just swap the videos. | Pilih beberapa video, setiap video menjadi potongan 1.5 saat secara automatik. Tinggal tukar video. | Elige varios vídeos; cada uno se recorta a 1,5 segundos automáticamente. Solo cambia los vídeos. | Escolha vários vídeos; cada um é cortado automaticamente em 1,5 segundo. Basta trocar os vídeos. | Choisissez plusieurs vidéos ; chacune est coupée automatiquement à 1,5 seconde. Il suffit de changer les vidéos. | Wähle mehrere Videos; jedes wird automatisch auf 1,5 Sekunden gekürzt. Du tauschst nur die Videos aus. | 複数の動画を選ぶと、それぞれ自動で1.5秒にカットされます。動画を差し替えるだけ。 | 여러 영상을 고르면 각각 자동으로 1.5초로 잘립니다. 영상만 바꾸면 됩니다. | Выберите несколько видео — каждое автоматически обрезается до 1,5 секунды. Остаётся только заменить видео.
+Vlog Singkat | Short Vlog | Vlog Ringkas | Vlog corto | Vlog curto | Vlog court | Kurzer Vlog | ショートVlog | 짧은 브이로그 | Короткий влог
+Tiap video otomatis jadi potongan 3 detik dalam format vertikal. | Each video is automatically cut to 3 seconds in vertical format. | Setiap video menjadi potongan 3 saat secara automatik dalam format menegak. | Cada vídeo se recorta automáticamente a 3 segundos en formato vertical. | Cada vídeo é cortado automaticamente em 3 segundos no formato vertical. | Chaque vidéo est coupée automatiquement à 3 secondes en format vertical. | Jedes Video wird automatisch auf 3 Sekunden im Hochformat gekürzt. | 各動画は縦型で自動的に3秒にカットされます。 | 각 영상이 세로 형식으로 자동으로 3초로 잘립니다. | Каждое видео автоматически обрезается до 3 секунд в вертикальном формате.
+Tambah Teks | Add Text | Tambah Teks | Añadir texto | Adicionar texto | Ajouter du texte | Text hinzufügen | テキストを追加 | 텍스트 추가 | Добавить текст
+Maksimal 5 teks | Maximum 5 texts | Maksimum 5 teks | Máximo 5 textos | Máximo 5 textos | 5 textes maximum | Maximal 5 Texte | 最大5件 | 최대 5개 | Максимум 5 текстов
+Hapus teks | Delete text | Padam teks | Eliminar texto | Excluir texto | Supprimer le texte | Text löschen | テキストを削除 | 텍스트 삭제 | Удалить текст
+Hapus keterangan | Delete caption | Padam kapsyen | Eliminar subtítulo | Excluir legenda | Supprimer le sous-titre | Untertitel löschen | キャプションを削除 | 자막 삭제 | Удалить субтитр
+Ekstrak audio | Extract audio | Ekstrak audio | Extraer audio | Extrair áudio | Extraire l'audio | Audio extrahieren | 音声を抽出 | 오디오 추출 | Извлечь аудио
+Ketuk klip atau audio untuk memilih. Geser untuk menggulung, cubit untuk zoom. | Tap a clip or audio to select it. Swipe to scroll, pinch to zoom. | Ketik klip atau audio untuk memilih. Seret untuk menatal, cubit untuk zum. | Toca un clip o audio para seleccionarlo. Desliza para desplazarte, pellizca para hacer zoom. | Toque em um clipe ou áudio para selecionar. Deslize para rolar, pince para dar zoom. | Touchez un clip ou un audio pour le sélectionner. Faites glisser pour défiler, pincez pour zoomer. | Tippe auf einen Clip oder Audio zum Auswählen. Wischen zum Scrollen, zwei Finger zum Zoomen. | クリップや音声をタップして選択。スワイプでスクロール、ピンチでズーム。 | 클립이나 오디오를 탭해 선택하세요. 밀어서 스크롤, 핀치로 확대/축소합니다. | Нажмите на клип или аудио, чтобы выбрать. Проведите для прокрутки, щипком масштабируйте.
+Tarik handle putih di ujung klip untuk memotong. | Drag the white handle at the clip's end to trim. | Seret pemegang putih di hujung klip untuk memotong. | Arrastra el control blanco en el extremo del clip para recortar. | Arraste a alça branca na ponta do clipe para cortar. | Faites glisser la poignée blanche au bord du clip pour couper. | Ziehe den weißen Griff am Clip-Ende, um zu kürzen. | クリップ端の白いハンドルをドラッグしてトリム。 | 클립 끝의 흰색 핸들을 끌어 자르세요. | Потяните белый маркер на краю клипа, чтобы обрезать.
+Geser audio untuk memindah. Tarik handle putih untuk memotong. | Drag the audio to move it. Drag the white handle to trim. | Seret audio untuk memindah. Seret pemegang putih untuk memotong. | Arrastra el audio para moverlo. Arrastra el control blanco para recortar. | Arraste o áudio para mover. Arraste a alça branca para cortar. | Faites glisser l'audio pour le déplacer. Faites glisser la poignée blanche pour couper. | Ziehe das Audio zum Verschieben. Ziehe den weißen Griff zum Kürzen. | 音声をドラッグして移動。白いハンドルをドラッグしてトリム。 | 오디오를 끌어 이동하세요. 흰색 핸들을 끌어 자르세요. | Перетащите аудио, чтобы переместить. Потяните белый маркер, чтобы обрезать.
+Export gagal | Export failed | Eksport gagal | Error al exportar | Falha na exportação | Échec de l'export | Export fehlgeschlagen | 書き出しに失敗しました | 내보내기 실패 | Ошибка экспорта
+Coba Lagi | Try Again | Cuba Lagi | Reintentar | Tentar novamente | Réessayer | Erneut versuchen | もう一度試す | 다시 시도 | Повторить
+Kembali ke Editor | Back to Editor | Kembali ke Editor | Volver al editor | Voltar ao editor | Retour à l'éditeur | Zurück zum Editor | エディターに戻る | 편집기로 돌아가기 | Назад в редактор
+Mulai Export | Start Export | Mula Eksport | Iniciar exportación | Iniciar exportação | Lancer l'export | Export starten | 書き出しを開始 | 내보내기 시작 | Начать экспорт
+Berhasil! | Success! | Berjaya! | ¡Listo! | Pronto! | Réussi ! | Geschafft! | 完了！ | 완료! | Готово!
+Video telah disimpan di galeri Anda | The video was saved to your gallery | Video telah disimpan dalam galeri anda | El vídeo se guardó en tu galería | O vídeo foi salvo na sua galeria | La vidéo a été enregistrée dans votre galerie | Das Video wurde in deiner Galerie gespeichert | 動画をギャラリーに保存しました | 영상이 갤러리에 저장되었습니다 | Видео сохранено в галерее
+Buka Galeri | Open Gallery | Buka Galeri | Abrir galería | Abrir galeria | Ouvrir la galerie | Galerie öffnen | ギャラリーを開く | 갤러리 열기 | Открыть галерею
+dtk | sec | saat | s | s | s | Sek. | 秒 | 초 | с
+Berlaku untuk klip | Applies to clip | Terpakai untuk klip | Se aplica al clip | Aplica-se ao clipe | S'applique au clip | Gilt für Clip | 適用先クリップ | 적용 대상 클립 | Применяется к клипу
+Suara ikut menyesuaikan tanpa mengubah nada. | Sound follows without changing pitch. | Bunyi turut menyesuaikan tanpa mengubah nada. | El sonido se ajusta sin cambiar el tono. | O som acompanha sem alterar o tom. | Le son suit sans changer la hauteur. | Der Ton passt sich ohne Tonhöhenänderung an. | 音程は変えずに音声も合わせて変わります。 | 음높이는 그대로 소리도 함께 조절됩니다. | Звук подстраивается без изменения тона.
+Volume Klip | Clip Volume | Kelantangan Klip | Volumen del clip | Volume do clipe | Volume du clip | Clip-Lautstärke | クリップの音量 | 클립 볼륨 | Громкость клипа
+Perkiraan ukuran file | Estimated file size | Anggaran saiz fail | Tamaño estimado del archivo | Tamanho estimado do arquivo | Taille estimée du fichier | Geschätzte Dateigröße | 推定ファイルサイズ | 예상 파일 크기 | Примерный размер файла
+Durasi | Duration | Tempoh | Duración | Duração | Durée | Dauer | 長さ | 길이 | Длительность
+klip | clips | klip | clips | clipes | clips | Clips | クリップ | 클립 | клипов
+Premium aktif • sekitar | Premium active • about | Premium aktif • lebih kurang | Premium activo • aprox. | Premium ativo • cerca de | Premium actif • environ | Premium aktiv • etwa | プレミアム有効・約 | 프리미엄 활성 • 약 | Премиум активен • около
+menit lagi | minutes left | minit lagi | min restantes | min restantes | min restantes | Min. übrig | 分 | 분 남음 | мин осталось
+Maksimal | Maximum | Maksimum | Máximo | Máximo | Maximum | Maximal | 最大 | 최대 | Максимум
+klip audio | audio clips | klip audio | clips de audio | clipes de áudio | clips audio | Audio-Clips | 音声クリップ | 오디오 클립 | аудиоклипов
+keterangan | captions | kapsyen | subtítulos | legendas | sous-titres | Untertitel | キャプション | 자막 | субтитров
+keterangan diimpor. | captions imported. | kapsyen diimport. | subtítulos importados. | legendas importadas. | sous-titres importés. | Untertitel importiert. | 件のキャプションを読み込みました。 | 개의 자막을 가져왔습니다. | субтитров импортировано.
+Klip terlalu pendek untuk speed ramp (minimal 3 detik). | The clip is too short for a speed ramp (at least 3 seconds). | Klip terlalu pendek untuk speed ramp (minimum 3 saat). | El clip es demasiado corto para una rampa de velocidad (mínimo 3 segundos). | O clipe é curto demais para uma rampa de velocidade (mínimo 3 segundos). | Le clip est trop court pour une rampe de vitesse (3 secondes minimum). | Der Clip ist zu kurz für eine Geschwindigkeitsrampe (mindestens 3 Sekunden). | クリップが短すぎてスピードランプにできません(3秒以上必要)。 | 클립이 너무 짧아 스피드 램프를 쓸 수 없습니다(최소 3초). | Клип слишком короткий для рампы скорости (минимум 3 секунды).
+teks, stiker, atau overlay | texts, stickers, or overlays | teks, pelekat atau tindanan | textos, pegatinas o superposiciones | textos, figurinhas ou overlays | textes, stickers ou incrustations | Texte, Sticker oder Overlays | テキスト・ステッカー・オーバーレイ | 텍스트, 스티커 또는 오버레이 | текстов, стикеров или оверлеев
+Jelas | Clear | Jelas | Nítido | Nítido | Net | Klar | クリア | 선명 | Четкий
+Segar | Fresh | Segar | Fresco | Fresco | Frais | Frisch | フレッシュ | 상쾌 | Свежий
+Rapi | Neat | Rapi | Pulcro | Limpo | Soigné | Gepflegt | すっきり | 깔끔 | Опрятный
+Hangat Lembut | Soft Warm | Hangat Lembut | Cálido suave | Quente suave | Doux chaud | Weich warm | やわらか暖色 | 부드러운 따뜻함 | Мягкое тепло
+Kafe | Café | Kafe | Café | Café | Café | Café | カフェ | 카페 | Кафе
+Harian | Everyday | Harian | Diario | Diário | Quotidien | Alltag | 日常 | 일상 | Будни
+Bersih | Clean | Bersih | Limpio | Limpo | Propre | Sauber | クリーン | 깨끗함 | Чистый
+Hutan | Forest | Hutan | Bosque | Floresta | Forêt | Wald | 森 | 숲 | Лес
+Gunung | Mountain | Gunung | Montaña | Montanha | Montagne | Berg | 山 | 산 | Горы
+Langit Biru | Blue Sky | Langit Biru | Cielo azul | Céu azul | Ciel bleu | Blauer Himmel | 青空 | 푸른 하늘 | Синее небо
+Kabut | Fog | Kabut | Niebla | Névoa | Brouillard | Nebel | 霧 | 안개 | Туман
+Kota Neon | Neon City | Kota Neon | Ciudad neón | Cidade neon | Ville néon | Neon-Stadt | ネオンシティ | 네온 시티 | Неоновый город
+Danau | Lake | Danau | Lago | Lago | Lac | See | 湖 | 호수 | Озеро
+Musim Gugur | Autumn | Musim Gugur | Otoño | Outono | Automne | Herbst | 秋 | 가을 | Осень
+Jernih HD | Crystal HD | Jernih HD | HD cristalino | HD cristalino | HD cristallin | Kristall-HD | クリアHD | 선명 HD | Чистый HD
+Porselen | Porcelain | Porselen | Porcelana | Porcelana | Porcelaine | Porzellan | 磁器 | 도자기 | Фарфор
+Bersinar | Glowing | Bersinar | Resplandor | Brilhante | Éclatant | Strahlend | 輝き | 빛나는 | Сияние
+Fokus | Focus | Fokus | Enfoque | Foco | Mise au point | Fokus | フォーカス | 포커스 | Фокус
+Matte | Matte | Matte | Mate | Fosco | Mat | Matt | マット | 매트 | Матовый
+Remaja | Youthful | Remaja | Juvenil | Juvenil | Jeune | Jugendlich | ヤング | 청춘 | Молодость
+Logam | Metal | Logam | Metal | Metal | Métal | Metall | メタル | 메탈 | Металл
+Peach | Peach | Peach | Melocotón | Pêssego | Pêche | Pfirsich | ピーチ | 피치 | Персик
+Senyap | Quiet | Senyap | Silencio | Silêncio | Calme | Leise | 静か | 고요 | Тишина
+Hitam Putih | Black & White | Hitam Putih | Blanco y negro | Preto e branco | Noir et blanc | Schwarzweiß | 白黒 | 흑백 | Чёрно-белый
+HP Kontras | B&W Contrast | HP Kontras | B/N contraste | P&B contraste | N&B contraste | SW Kontrast | 白黒コントラスト | 흑백 대비 | Ч/б контраст
+HP Lembut | B&W Soft | HP Lembut | B/N suave | P&B suave | N&B doux | SW weich | 白黒ソフト | 흑백 부드럽게 | Ч/б мягкий
+Noir | Noir | Noir | Noir | Noir | Noir | Noir | ノワール | 누아르 | Нуар
+Matte Noir | Matte Noir | Matte Noir | Noir mate | Noir fosco | Noir mat | Mattes Noir | マットノワール | 매트 누아르 | Матовый нуар
+Perak | Silver | Perak | Plata | Prata | Argent | Silber | シルバー | 실버 | Серебро
+Kertas Koran | Newsprint | Kertas Koran | Papel prensa | Papel jornal | Papier journal | Zeitungspapier | 新聞紙 | 신문지 | Газетная бумага
+Mono Hangat | Warm Mono | Mono Hangat | Mono cálido | Mono quente | Mono chaud | Warmes Mono | 暖色モノ | 따뜻한 모노 | Тёплое моно
+Film Dingin | Cool Film | Film Dingin | Cine frío | Filme frio | Film froid | Kühler Film | クールフィルム | 차가운 필름 | Холодная плёнка
+Film Hangat | Warm Film | Film Hangat | Cine cálido | Filme quente | Film chaud | Warmer Film | ウォームフィルム | 따뜻한 필름 | Тёплая плёнка
+Sinema | Cinema | Sinema | Cine | Cinema | Cinéma | Kino | シネマ | 시네마 | Кино
+Warna Analog | Analog Color | Warna Analog | Color analógico | Cor analógica | Couleur analogique | Analoge Farben | アナログ色 | 아날로그 색감 | Аналоговый цвет
+Hijau Analog | Analog Green | Hijau Analog | Verde analógico | Verde analógico | Vert analogique | Analoges Grün | アナロググリーン | 아날로그 그린 | Аналоговый зелёный
+Pucat Sinema | Bleach Bypass | Pucat Sinema | Bleach bypass | Bleach bypass | Bleach bypass | Bleach Bypass | ブリーチバイパス | 블리치 바이패스 | Отбеливание
+Drama | Drama | Drama | Drama | Drama | Drame | Drama | ドラマ | 드라마 | Драма
+Sutradara | Director | Sutradara | Director | Diretor | Réalisateur | Regisseur | ディレクター | 감독 | Режиссёр
+Retro 70an | Retro 70s | Retro 70an | Retro 70s | Retrô anos 70 | Rétro années 70 | Retro 70er | レトロ70s | 70년대 레트로 | Ретро 70-х
+Kaset VHS | VHS Tape | Kaset VHS | Cinta VHS | Fita VHS | Cassette VHS | VHS-Kassette | VHSテープ | VHS 테이프 | Кассета VHS
+Polaroid | Polaroid | Polaroid | Polaroid | Polaroid | Polaroid | Polaroid | ポラロイド | 폴라로이드 | Полароид
+Sepia | Sepia | Sepia | Sepia | Sépia | Sépia | Sepia | セピア | 세피아 | Сепия
+Foto Tua | Old Photo | Foto Tua | Foto antigua | Foto antiga | Vieille photo | Altes Foto | 古い写真 | 오래된 사진 | Старое фото
+Memudar | Faded | Memudar | Desvaído | Desbotado | Délavé | Verblasst | 色あせ | 빛바램 | Выцветший
+Cetak Lawas | Old Print | Cetak Lawas | Impresión antigua | Impressão antiga | Vieille impression | Alter Druck | 古い印刷 | 옛날 인쇄 | Старая печать
+Jam Emas | Golden Hour | Jam Emas | Hora dorada | Hora dourada | Heure dorée | Goldene Stunde | ゴールデンアワー | 골든 아워 | Золотой час
+Senja Ungu | Purple Dusk | Senja Ungu | Crepúsculo morado | Crepúsculo roxo | Crépuscule violet | Violette Dämmerung | 紫の夕暮れ | 보라빛 노을 | Лиловый закат
+Matahari Terbit | Sunrise | Matahari Terbit | Amanecer | Nascer do sol | Lever du soleil | Sonnenaufgang | 日の出 | 일출 | Восход
+Romansa | Romance | Romansa | Romance | Romance | Romance | Romantik | ロマンス | 로맨스 | Романтика
+Langit Api | Fire Sky | Langit Api | Cielo de fuego | Céu de fogo | Ciel de feu | Feuerhimmel | 炎の空 | 불타는 하늘 | Огненное небо
+Laut | Ocean | Laut | Océano | Oceano | Océan | Ozean | 海 | 바다 | Океан
+Pulau Biru | Blue Island | Pulau Biru | Isla azul | Ilha azul | Île bleue | Blaue Insel | ブルーアイランド | 블루 아일랜드 | Синий остров
+Liburan | Vacation | Liburan | Vacaciones | Férias | Vacances | Urlaub | バカンス | 휴가 | Отпуск
+Tropis | Tropical | Tropis | Tropical | Tropical | Tropical | Tropisch | トロピカル | 트로피칼 | Тропики
+Pasir | Sand | Pasir | Arena | Areia | Sable | Sand | 砂 | 모래 | Песок
+Karang | Coral | Karang | Coral | Coral | Corail | Koralle | サンゴ | 산호 | Коралл
+Ombak | Waves | Ombak | Olas | Ondas | Vagues | Wellen | 波 | 파도 | Волны
+Gelap Tegas | Bold Dark | Gelap Tegas | Oscuro intenso | Escuro forte | Sombre intense | Kräftig dunkel | 力強いダーク | 강렬한 어두움 | Резкий тёмный
+Baja | Steel | Baja | Acero | Aço | Acier | Stahl | スチール | 스틸 | Сталь
+Panas | Hot | Panas | Caliente | Quente | Chaud | Heiß | ホット | 핫 | Жаркий
+Tegang | Tense | Tegang | Tenso | Tenso | Tendu | Angespannt | 緊張 | 긴장 | Напряжение
+Tajam | Sharp | Tajam | Nítido | Nítido | Précis | Scharf | シャープ | 샤프 | Резкий
+Y2K Biru | Y2K Blue | Y2K Biru | Y2K azul | Y2K azul | Y2K bleu | Y2K Blau | Y2Kブルー | Y2K 블루 | Y2K синий
+Kamera Digital | Digital Camera | Kamera Digital | Cámara digital | Câmera digital | Appareil photo numérique | Digitalkamera | デジカメ | 디지털 카메라 | Цифровая камера
+Lampu Kilat | Flash | Lampu Kilat | Flash | Flash | Flash | Blitz | フラッシュ | 플래시 | Вспышка
+Pop | Pop | Pop | Pop | Pop | Pop | Pop | ポップ | 팝 | Поп
+Piringan | Disc | Piringan | Disco | Disco | Disque | Scheibe | ディスク | 디스크 | Диск
+Kampus | Campus | Kampus | Campus | Campus | Campus | Campus | キャンパス | 캠퍼스 | Кампус
+Pagi Cerah | Bright Morning | Pagi Cerah | Mañana radiante | Manhã radiante | Matin lumineux | Heller Morgen | 明るい朝 | 화창한 아침 | Яркое утро
+Hari Biasa | Ordinary Day | Hari Biasa | Día normal | Dia comum | Jour ordinaire | Gewöhnlicher Tag | 普通の日 | 평범한 날 | Обычный день
+Rumah | Home | Rumah | Hogar | Lar | Maison | Zuhause | 家 | 집 | Дом
+Sahabat | Friends | Sahabat | Amigos | Amigos | Amis | Freunde | 友達 | 친구 | Друзья
+Jalan-jalan | Outing | Jalan-jalan | Paseo | Passeio | Balade | Ausflug | お出かけ | 나들이 | Прогулка
+Makan Enak | Tasty Food | Makan Enak | Comida rica | Comida gostosa | Bonne cuisine | Leckeres Essen | おいしい食事 | 맛있는 음식 | Вкусная еда
+Kota Hidup | Lively City | Kota Hidup | Ciudad viva | Cidade viva | Ville animée | Lebendige Stadt | にぎやかな街 | 활기찬 도시 | Живой город
+Santai | Relaxed | Santai | Relajado | Relaxado | Détendu | Entspannt | のんびり | 여유 | Расслабленный
+Ceria | Cheerful | Ceria | Alegre | Alegre | Joyeux | Fröhlich | 陽気 | 명랑 | Весёлый
+Natural | Natural | Natural | Natural | Natural | Naturel | Natürlich | ナチュラル | 내추럴 | Натуральный
+Sawah | Rice Field | Sawah | Arrozal | Arrozal | Rizière | Reisfeld | 田んぼ | 논 | Рисовое поле
+Bukit | Hills | Bukit | Colinas | Colinas | Collines | Hügel | 丘 | 언덕 | Холмы
+Awan | Clouds | Awan | Nubes | Nuvens | Nuages | Wolken | 雲 | 구름 | Облака
+Embun | Dew | Embun | Rocío | Orvalho | Rosée | Tau | 朝露 | 이슬 | Роса
+Padang Hijau | Green Meadow | Padang Hijau | Prado verde | Campo verde | Prairie verte | Grüne Wiese | 緑の草原 | 푸른 초원 | Зелёный луг
+Air Terjun | Waterfall | Air Terjun | Cascada | Cachoeira | Cascade | Wasserfall | 滝 | 폭포 | Водопад
+Salju | Snow | Salju | Nieve | Neve | Neige | Schnee | 雪 | 눈 | Снег
+Gurun | Desert | Gurun | Desierto | Deserto | Désert | Wüste | 砂漠 | 사막 | Пустыня
+Rimba | Jungle | Rimba | Selva | Selva | Jungle | Dschungel | ジャングル | 정글 | Джунгли
+Cakrawala | Horizon | Cakrawala | Horizonte | Horizonte | Horizon | Horizont | 地平線 | 지평선 | Горизонт
+Lembut | Soft | Lembut | Suave | Suave | Doux | Weich | ソフト | 부드러움 | Мягкий
+Kulit Halus | Smooth Skin | Kulit Halus | Piel suave | Pele suave | Peau lisse | Glatte Haut | なめらか肌 | 매끈한 피부 | Гладкая кожа
+Wajah Cerah | Bright Face | Wajah Cerah | Rostro luminoso | Rosto iluminado | Visage lumineux | Strahlendes Gesicht | 明るい顔色 | 화사한 얼굴 | Яркое лицо
+Mata Tajam | Sharp Eyes | Mata Tajam | Ojos nítidos | Olhos nítidos | Regard perçant | Scharfe Augen | くっきり目元 | 또렷한 눈 | Чёткий взгляд
+Studio | Studio | Studio | Estudio | Estúdio | Studio | Studio | スタジオ | 스튜디오 | Студия
+Elegan | Elegant | Elegan | Elegante | Elegante | Élégant | Elegant | エレガント | 우아함 | Элегантный
+Manis | Sweet | Manis | Dulce | Doce | Doux | Süß | スイート | 달콤함 | Милый
+Klasik | Classic | Klasik | Clásico | Clássico | Classique | Klassisch | クラシック | 클래식 | Классика
+Segar Muda | Youthful Fresh | Segar Muda | Fresco juvenil | Fresco jovem | Frais et jeune | Jugendfrisch | 若々しい | 싱그러움 | Юная свежесть
+Hangat Manis | Sweet Warm | Hangat Manis | Cálido dulce | Quente doce | Chaud doux | Süß warm | 甘い暖色 | 달콤 따뜻함 | Сладкое тепло
+Abu Lembut | Soft Gray | Abu Lembut | Gris suave | Cinza suave | Gris doux | Weiches Grau | やわらかグレー | 부드러운 회색 | Мягкий серый
+Grafit | Graphite | Grafit | Grafito | Grafite | Graphite | Graphit | グラファイト | 그래파이트 | Графит
+Arang | Charcoal | Arang | Carbón | Carvão | Charbon | Kohle | チャコール | 차콜 | Уголь
+Tinta | Ink | Tinta | Tinta | Tinta | Encre | Tinte | インク | 잉크 | Чернила
+Kabut Abu | Gray Mist | Kabut Abu | Niebla gris | Névoa cinza | Brume grise | Grauer Dunst | グレーの霞 | 회색 안개 | Серая дымка
+Putih Tinggi | High Key | Putih Tinggi | Clave alta | Tom alto | Haute clé | High Key | ハイキー | 하이키 | Высокий ключ
+Hitam Dalam | Deep Black | Hitam Dalam | Negro profundo | Preto profundo | Noir profond | Tiefschwarz | 深い黒 | 깊은 검정 | Глубокий чёрный
+Dokumenter | Documentary | Dokumenter | Documental | Documentário | Documentaire | Dokumentarisch | ドキュメンタリー | 다큐멘터리 | Документальный
+Jalanan | Street | Jalanan | Calle | Rua | Rue | Straße | ストリート | 거리 | Улица
+Seni | Art | Seni | Arte | Arte | Art | Kunst | アート | 아트 | Искусство
+Malam Kota | City Night | Malam Kota | Noche urbana | Noite urbana | Nuit urbaine | Stadtnacht | 街の夜 | 도시의 밤 | Ночной город
+Layar Lebar | Widescreen | Layar Lebar | Pantalla ancha | Tela larga | Grand écran | Breitbild | ワイドスクリーン | 와이드스크린 | Широкий экран
+Analog 35 | Analog 35 | Analog 35 | Analógico 35 | Analógico 35 | Analogique 35 | Analog 35 | アナログ35 | 아날로그 35 | Аналог 35
+Teater | Theater | Teater | Teatro | Teatro | Théâtre | Theater | シアター | 극장 | Театр
+Detektif | Detective | Detektif | Detective | Detetive | Détective | Detektiv | 探偵 | 탐정 | Детектив
+Romantis Film | Film Romance | Romantis Film | Romance de cine | Romance de cinema | Romance filmée | Filmromantik | 映画ロマンス | 영화 로맨스 | Киноромантика
+Epik | Epic | Epik | Épico | Épico | Épique | Episch | エピック | 에픽 | Эпик
+Indie | Indie | Indie | Indie | Indie | Indé | Indie | インディー | 인디 | Инди
+Thriller | Thriller | Thriller | Thriller | Thriller | Thriller | Thriller | スリラー | 스릴러 | Триллер
+Klasik Hollywood | Classic Hollywood | Klasik Hollywood | Hollywood clásico | Hollywood clássico | Hollywood classique | Klassisches Hollywood | クラシックハリウッド | 클래식 할리우드 | Классический Голливуд
+Kaset Lama | Old Cassette | Kaset Lama | Casete antiguo | Fita antiga | Vieille cassette | Alte Kassette | 古いカセット | 오래된 카세트 | Старая кассета
+Disko | Disco | Disko | Disco | Discoteca | Disco | Disco | ディスコ | 디스코 | Диско
+Album Keluarga | Family Album | Album Keluarga | Álbum familiar | Álbum de família | Album de famille | Familienalbum | 家族アルバム | 가족 앨범 | Семейный альбом
+Kartu Pos | Postcard | Kartu Pos | Postal | Cartão-postal | Carte postale | Postkarte | ポストカード | 엽서 | Открытка
+Arcade | Arcade | Arcade | Arcade | Arcade | Arcade | Arcade | アーケード | 아케이드 | Аркада
+Vintage Kuning | Yellow Vintage | Vintage Kuning | Vintage amarillo | Vintage amarelo | Vintage jaune | Gelber Vintage | 黄色ビンテージ | 노랑 빈티지 | Жёлтый винтаж
+Layar Tabung | CRT Screen | Layar Tabung | Pantalla CRT | Tela CRT | Écran CRT | Röhrenbildschirm | ブラウン管 | 브라운관 | Экран ЭЛТ
+Jadul | Old School | Jadul | De antaño | Antigão | Old school | Old School | 懐かしい | 옛날식 | Старая школа
+Majalah Lama | Old Magazine | Majalah Lama | Revista antigua | Revista antiga | Vieux magazine | Altes Magazin | 古い雑誌 | 오래된 잡지 | Старый журнал
+Radio Tua | Old Radio | Radio Tua | Radio antigua | Rádio antigo | Vieille radio | Altes Radio | 古いラジオ | 오래된 라디오 | Старое радио
+Merah Jambu | Pink | Merah Jambu | Rosa | Rosa | Rose | Rosa | ピンク | 핑크 | Розовый
+Jingga Pekat | Deep Orange | Jingga Pekat | Naranja intenso | Laranja intenso | Orange profond | Tieforange | 濃いオレンジ | 진한 오렌지 | Насыщенный оранжевый
+Langit Magenta | Magenta Sky | Langit Magenta | Cielo magenta | Céu magenta | Ciel magenta | Magenta-Himmel | マゼンタの空 | 마젠타 하늘 | Пурпурное небо
+Sore Emas | Golden Afternoon | Sore Emas | Tarde dorada | Tarde dourada | Après-midi doré | Goldener Nachmittag | 黄金の午後 | 황금빛 오후 | Золотой вечер
+Remang | Twilight | Remang | Penumbra | Penumbra | Pénombre | Dämmerlicht | 薄明かり | 어스름 | Полумрак
+Fajar | Dawn | Fajar | Alba | Amanhecer | Aube | Morgendämmerung | 夜明け | 새벽 | Рассвет
+Cahaya Hangat | Warm Light | Cahaya Hangat | Luz cálida | Luz quente | Lumière chaude | Warmes Licht | 暖かい光 | 따뜻한 빛 | Тёплый свет
+Bara | Embers | Bara | Brasas | Brasas | Braises | Glut | 燃えさし | 불씨 | Угли
+Lembayung | Afterglow | Lembayung | Arrebol | Arrebol | Lueur du soir | Abendrot | 夕焼け | 저녁놀 | Закатное зарево
+Pelangi Sore | Evening Rainbow | Pelangi Sore | Arcoíris vespertino | Arco-íris da tarde | Arc-en-ciel du soir | Abendregenbogen | 夕方の虹 | 저녁 무지개 | Вечерняя радуга
+Biru Tosca | Turquoise | Biru Tosca | Turquesa | Turquesa | Turquoise | Türkis | ターコイズ | 터코이즈 | Бирюзовый
+Laguna | Lagoon | Laguna | Laguna | Lagoa | Lagon | Lagune | ラグーン | 라군 | Лагуна
+Pasir Putih | White Sand | Pasir Putih | Arena blanca | Areia branca | Sable blanc | Weißer Sand | 白い砂 | 하얀 모래 | Белый песок
+Selancar | Surf | Selancar | Surf | Surfe | Surf | Surfen | サーフ | 서핑 | Серфинг
+Pulau Kecil | Small Island | Pulau Kecil | Isla pequeña | Ilha pequena | Petite île | Kleine Insel | 小さな島 | 작은 섬 | Малый остров
+Teluk | Bay | Teluk | Bahía | Baía | Baie | Bucht | 湾 | 만 | Залив
+Siang Laut | Sea Noon | Siang Laut | Mediodía marino | Meio-dia no mar | Midi marin | Meeresmittag | 海の正午 | 바다의 한낮 | Морской полдень
+Karang Cerah | Bright Coral | Karang Cerah | Coral brillante | Coral brilhante | Corail vif | Helle Koralle | 明るいサンゴ | 밝은 산호 | Яркий коралл
+Kapal Layar | Sailboat | Kapal Layar | Velero | Veleiro | Voilier | Segelboot | ヨット | 요트 | Парусник
+Camar | Seagull | Camar | Gaviota | Gaivota | Mouette | Möwe | カモメ | 갈매기 | Чайка
+Kejar | Chase | Kejar | Persecución | Perseguição | Poursuite | Verfolgung | 追跡 | 추격 | Погоня
+Ledakan | Explosion | Ledakan | Explosión | Explosão | Explosion | Explosion | 爆発 | 폭발 | Взрыв
+Balap | Racing | Balap | Carreras | Corrida | Course | Rennen | レース | 레이싱 | Гонки
+Medan Laga | Battlefield | Medan Laga | Campo de batalla | Campo de batalha | Champ de bataille | Schlachtfeld | 戦場 | 전장 | Поле боя
+Olahraga | Sports | Olahraga | Deportes | Esportes | Sport | Sport | スポーツ | 스포츠 | Спорт
+Pertarungan | Fight | Pertarungan | Pelea | Luta | Combat | Kampf | 格闘 | 대결 | Бой
+Adrenalin | Adrenaline | Adrenalin | Adrenalina | Adrenalina | Adrénaline | Adrenalin | アドレナリン | 아드레날린 | Адреналин
+Garang | Fierce | Garang | Feroz | Feroz | Féroce | Wild | 猛々しい | 사나움 | Свирепый
+Baja Dingin | Cold Steel | Baja Dingin | Acero frío | Aço frio | Acier froid | Kalter Stahl | 冷たい鋼 | 차가운 강철 | Холодная сталь
+Sirkuit | Circuit | Sirkuit | Circuito | Circuito | Circuit | Rennstrecke | サーキット | 서킷 | Трасса
+Handycam | Handycam | Handycam | Handycam | Handycam | Handycam | Handycam | ハンディカム | 핸디캠 | Хэндикам
+MTV | MTV | MTV | MTV | MTV | MTV | MTV | MTV | MTV | MTV
+Warnet | Internet Café | Warnet | Cibercafé | Lan house | Cybercafé | Internetcafé | ネットカフェ | PC방 | Интернет-кафе
+Ponsel Lipat | Flip Phone | Ponsel Lipat | Móvil plegable | Celular flip | Téléphone à clapet | Klapphandy | ガラケー | 폴더폰 | Раскладушка
+Foto Cetak | Photo Print | Foto Cetak | Foto impresa | Foto impressa | Tirage photo | Fotoabzug | プリント写真 | 인화 사진 | Фотопечать
+Kamera Saku | Pocket Camera | Kamera Saku | Cámara compacta | Câmera compacta | Compact photo | Kompaktkamera | コンパクトカメラ | 포켓 카메라 | Компакт-камера
+Pesta Sekolah | School Party | Pesta Sekolah | Fiesta escolar | Festa escolar | Fête scolaire | Schulparty | 学園パーティー | 학교 파티 | Школьная вечеринка
+Boyband | Boy Band | Boyband | Boy band | Boy band | Boys band | Boyband | ボーイバンド | 보이밴드 | Бойз-бэнд
+Lensa Murah | Cheap Lens | Lensa Murah | Lente barata | Lente barata | Objectif bon marché | Billiglinse | 安価レンズ | 저가 렌즈 | Дешёвый объектив
+Cerah Murah | Cheap Bright | Cerah Murah | Brillo barato | Brilho barato | Lumineux bon marché | Billig-Hell | 安っぽい明るさ | 저렴한 밝음 | Дешёвая яркость
+Viral | Viral | Viral | Viral | Viral | Viral | Viral | バイラル | 바이럴 | Вирусный
+Populer | Popular | Populer | Popular | Popular | Populaire | Beliebt | 人気 | 인기 | Популярный
+Estetik | Aesthetic | Estetik | Estético | Estético | Esthétique | Ästhetisch | エステティック | 감성 | Эстетика
+Favorit | Favorite | Favorit | Favorito | Favorito | Favori | Favorit | お気に入り | 즐겨찾기 | Любимый
+Terlaris | Best Seller | Terlaris | Más vendido | Mais vendido | Meilleure vente | Bestseller | ベストセラー | 베스트셀러 | Бестселлер
+Kekinian | Trendy | Kekinian | De moda | Da moda | Tendance | Trendig | トレンド | 트렌디 | Модный
+Mantap | Awesome | Mantap | Genial | Incrível | Génial | Großartig | すごい | 멋짐 | Классный
+Juara | Champion | Juara | Campeón | Campeão | Champion | Champion | チャンピオン | 챔피언 | Чемпион
+Top Harian | Daily Top | Top Harian | Top diario | Top diário | Top du jour | Tages-Top | 今日のトップ | 오늘의 인기 | Топ дня
+Pilihan Editor | Editor's Pick | Pilihan Editor | Selección del editor | Escolha do editor | Choix de l'éditeur | Tipp der Redaktion | 編集部のおすすめ | 에디터 추천 | Выбор редактора
 Cerah | Bright | Cerah | Brillante | Brilhante | Lumineux | Hell | 明るい | 밝게 | Яркий
 """
 }

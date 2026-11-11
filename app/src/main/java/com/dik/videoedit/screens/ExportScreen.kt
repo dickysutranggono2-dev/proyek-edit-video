@@ -40,7 +40,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import com.dik.videoedit.components.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -181,7 +181,7 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
             s.fpsOptions.forEach { f ->
                 FilterChip(
                     selected = s.fps == f, onClick = { vm.setFps(f) },
-                    label = { Text(if (f == 0) "Asli (${s.sourceFps})" else "$f fps") },
+                    label = { Text(if (f == 0) "${tr("Asli")} (${s.sourceFps})" else "$f fps") },
                 )
             }
         }
@@ -207,8 +207,8 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
 
         Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp)) {
-                Text("Perkiraan ukuran file: ±${formatSize(s.estimateBytes)}", fontWeight = FontWeight.SemiBold, color = Blue)
-                Text("Durasi ${formatTime(p.totalDurationMs)} • ${p.clips.size} klip", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${tr("Perkiraan ukuran file")}: ±${formatSize(s.estimateBytes)}", fontWeight = FontWeight.SemiBold, color = Blue)
+                Text("${tr("Durasi")} ${formatTime(p.totalDurationMs)} • ${p.clips.size} ${tr("klip")}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (p.usesPremium && !com.dik.videoedit.AppInfo.UNLOCK_ALL) {
@@ -263,7 +263,7 @@ private fun DoneView(done: Phase.Done, onFinish: () -> Unit) {
             }
         },
         title = "Berhasil!",
-        body = "Video telah disimpan di galeri Anda (${formatSize(done.sizeBytes)}).",
+        body = "${tr("Video telah disimpan di galeri Anda")} (${formatSize(done.sizeBytes)}).",
         primary = "Buka Galeri" to {
             val view = Intent(Intent.ACTION_VIEW).setDataAndType(done.uri, "video/mp4").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             try { context.startActivity(view) } catch (e: Exception) {

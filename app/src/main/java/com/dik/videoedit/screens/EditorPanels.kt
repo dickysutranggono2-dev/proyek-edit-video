@@ -44,7 +44,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import com.dik.videoedit.components.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -112,7 +112,7 @@ private val SPEEDS = listOf(0.25f, 0.5f, 0.75f, 1f, 1.5f, 2f, 3f)
 @Composable
 internal fun SpeedPanel(vm: EditorViewModel, project: Project, selected: Int) {
     val clip = project.clips.getOrNull(selected) ?: return
-    PanelTitle(tr("Kecepatan"), "Berlaku untuk klip ${selected + 1}. Suara ikut menyesuaikan tanpa mengubah nada.")
+    PanelTitle(tr("Kecepatan"), "${tr("Berlaku untuk klip")} ${selected + 1}. ${tr("Suara ikut menyesuaikan tanpa mengubah nada.")}")
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         SPEEDS.forEach { s ->
             FilterChip(selected = clip.speed == s, onClick = { vm.setSpeed(s, false) }, label = { Text(formatSpeed(s)) })
@@ -144,7 +144,7 @@ internal fun SpeedPanel(vm: EditorViewModel, project: Project, selected: Int) {
 @Composable
 internal fun ClipVolumePanel(vm: EditorViewModel, project: Project, selected: Int) {
     val clip = project.clips.getOrNull(selected) ?: return
-    PanelTitle("Volume Klip ${selected + 1}", tr("Suara asli video. Atur ke 0% untuk membisukan."))
+    PanelTitle("${tr("Volume Klip")} ${selected + 1}", tr("Suara asli video. Atur ke 0% untuk membisukan."))
     VolumeSlider("Volume", clip.volume, key = clip.id) { vm.setClipVolume(it) }
     NoiseReductionSwitch(vm, project)
 }
@@ -166,7 +166,7 @@ internal fun AudioFadePanel(vm: EditorViewModel, track: AudioTrack) {
     PanelTitle(tr("Fade Audio"), track.name)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(tr("Fade in"), fontSize = 14.sp)
-        Text(formatTimeTenth(fadeIn.toLong()).drop(3) + " dtk", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Text(formatTimeTenth(fadeIn.toLong()).drop(3) + " ${tr("dtk")}", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
     Slider(
         value = fadeIn, onValueChange = { fadeIn = it }, valueRange = 0f..maxMs,
@@ -174,7 +174,7 @@ internal fun AudioFadePanel(vm: EditorViewModel, track: AudioTrack) {
     )
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(tr("Fade out"), fontSize = 14.sp)
-        Text(formatTimeTenth(fadeOut.toLong()).drop(3) + " dtk", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Text(formatTimeTenth(fadeOut.toLong()).drop(3) + " ${tr("dtk")}", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
     Slider(
         value = fadeOut, onValueChange = { fadeOut = it }, valueRange = 0f..maxMs,
@@ -358,7 +358,7 @@ internal fun AnimationPanel(
 private fun PremiumNote(active: Boolean, minutes: Int) {
     if (com.dik.videoedit.AppInfo.UNLOCK_ALL) return
     Text(
-        if (active) "Premium aktif • sekitar $minutes menit lagi" else "Item bergembok membutuhkan menonton 1 iklan (membuka semua fitur premium 30 menit).",
+        if (active) "${tr("Premium aktif • sekitar")} $minutes ${tr("menit lagi")}" else "Item bergembok membutuhkan menonton 1 iklan (membuka semua fitur premium 30 menit).",
         fontSize = 12.sp,
         color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -494,7 +494,7 @@ internal fun CaptionPanel(vm: EditorViewModel, project: Project, positionMs: () 
     Spacer(Modifier.height(8.dp))
     Label(tr("Lama tampil"))
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf(2000L to "2 dtk", 3000L to "3 dtk", 5000L to "5 dtk", 8000L to "8 dtk").forEach { (ms, name) ->
+        listOf(2000L, 3000L, 5000L, 8000L).map { it to "${it / 1000} ${tr("dtk")}" }.forEach { (ms, name) ->
             FilterChip(selected = durationMs == ms, onClick = { durationMs = ms }, label = { Text(name) })
         }
     }

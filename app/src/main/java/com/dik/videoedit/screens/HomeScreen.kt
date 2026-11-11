@@ -32,7 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.dik.videoedit.components.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -175,7 +175,7 @@ private fun ProjectRow(p: Project, onClick: () -> Unit, onRename: () -> Unit, on
             Column(Modifier.weight(1f)) {
                 Text(p.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    "${formatTime(p.totalDurationMs)} • ${p.clips.size} klip",
+                    "${formatTime(p.totalDurationMs)} • ${p.clips.size} ${tr("klip")}",
                     fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

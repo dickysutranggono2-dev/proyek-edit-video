@@ -237,7 +237,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun addAudio(uri: Uri, atMs: Long) {
         val cur = _state.value.project ?: return
         if (cur.audio.size >= ProjectOps.MAX_AUDIO_TRACKS) {
-            messages.tryEmit("Maksimal ${ProjectOps.MAX_AUDIO_TRACKS} klip audio.")
+            messages.tryEmit("${tr("Maksimal")} ${ProjectOps.MAX_AUDIO_TRACKS} ${tr("klip audio")}.")
             return
         }
         viewModelScope.launch {
@@ -272,7 +272,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         val cur = _state.value.project ?: return
         val clip = cur.clips.getOrNull(clipIndex) ?: return
         if (cur.audio.size >= ProjectOps.MAX_AUDIO_TRACKS) {
-            messages.tryEmit("Maksimal ${ProjectOps.MAX_AUDIO_TRACKS} klip audio.")
+            messages.tryEmit("${tr("Maksimal")} ${ProjectOps.MAX_AUDIO_TRACKS} ${tr("klip audio")}.")
             return
         }
         viewModelScope.launch {
@@ -331,7 +331,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun duplicateAudio(id: String) {
         val cur = _state.value.project ?: return
         if (cur.audio.size >= ProjectOps.MAX_AUDIO_TRACKS) {
-            messages.tryEmit("Maksimal ${ProjectOps.MAX_AUDIO_TRACKS} klip audio.")
+            messages.tryEmit("${tr("Maksimal")} ${ProjectOps.MAX_AUDIO_TRACKS} ${tr("klip audio")}.")
             return
         }
         val copy = ProjectOps.duplicateAudio(cur, id)?.second ?: return
@@ -360,7 +360,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun addImageOverlay(uri: Uri) {
         val cur = _state.value.project ?: return
         if (cur.texts.count { !it.caption } >= MAX_ITEMS) {
-            messages.tryEmit("Maksimal $MAX_ITEMS teks/stiker/overlay.")
+            messages.tryEmit("${tr("Maksimal")} $MAX_ITEMS ${tr("teks, stiker, atau overlay")}.")
             return
         }
         viewModelScope.launch {
@@ -424,7 +424,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun addCaption(text: String, startMs: Long, durationMs: Long, style: CaptionStyle) {
         val cur = _state.value.project ?: return
         if (cur.texts.count { it.caption } >= MAX_CAPTIONS) {
-            messages.tryEmit("Maksimal $MAX_CAPTIONS keterangan.")
+            messages.tryEmit("${tr("Maksimal")} $MAX_CAPTIONS ${tr("keterangan")}.")
             return
         }
         val total = cur.totalDurationMs
@@ -455,7 +455,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             val items = cues.filter { it.startMs < total }.take(MAX_CAPTIONS)
                 .map { captionItem(it.text, it.startMs, it.endMs.coerceAtMost(total), style) }
             commit { p -> p.copy(texts = p.texts.filterNot { it.caption } + items) }
-            messages.tryEmit("${items.size} keterangan diimpor.")
+            messages.tryEmit("${items.size} ${tr("keterangan diimpor.")}")
         }
     }
 
