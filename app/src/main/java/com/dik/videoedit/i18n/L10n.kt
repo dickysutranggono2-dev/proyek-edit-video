@@ -84,7 +84,7 @@ Permissions: internet access (for ads only), notifications (to tell you when an 
     )
 
     // Format tiap baris: teks Indonesia | Inggris | Melayu | Spanyol | Portugis | Prancis | Jerman | Jepang | Korea | Rusia
-    private const val TABLE = """
+    private const val T0 = """
 Buka Fitur Premium | Unlock Premium Features | Buka Ciri Premium | Desbloquear funciones premium | Desbloquear recursos premium | Débloquer les fonctions premium | Premium-Funktionen freischalten | プレミアム機能を解放 | 프리미엄 기능 잠금 해제 | Открыть премиум-функции
 Tonton iklan untuk membuka fitur premium berikut selama 30 menit: | Watch an ad to unlock these premium features for 30 minutes: | Tonton iklan untuk membuka ciri premium ini selama 30 minit: | Mira un anuncio para desbloquear estas funciones premium durante 30 minutos: | Assista a um anúncio para desbloquear estes recursos premium por 30 minutos: | Regardez une pub pour débloquer ces fonctions premium pendant 30 minutes : | Sieh dir eine Werbung an, um diese Premium-Funktionen 30 Minuten lang freizuschalten: | 広告を見て、以下のプレミアム機能を30分間解放します: | 광고를 시청하면 아래 프리미엄 기능을 30분간 사용할 수 있습니다: | Посмотрите рекламу, чтобы открыть эти премиум-функции на 30 минут:
 Tidak dapat menampilkan iklan. | Could not show the ad. | Tidak dapat memaparkan iklan. | No se pudo mostrar el anuncio. | Não foi possível exibir o anúncio. | Impossible d'afficher la pub. | Werbung konnte nicht angezeigt werden. | 広告を表示できませんでした。 | 광고를 표시할 수 없습니다. | Не удалось показать рекламу.
@@ -130,6 +130,9 @@ Keterangan otomatis dari suara belum tersedia karena butuh layanan online. Ketik
 Video diisi penuh ke rasio yang dipilih (bagian tepi dipotong). | The video fills the chosen ratio completely (edges are cropped). | Video memenuhi nisbah yang dipilih sepenuhnya (bahagian tepi dipotong). | El vídeo llena por completo la proporción elegida (se recortan los bordes). | O vídeo preenche totalmente a proporção escolhida (as bordas são cortadas). | La vidéo remplit entièrement le format choisi (les bords sont rognés). | Das Video füllt das gewählte Format komplett aus (Ränder werden beschnitten).
 Teks tampil sepanjang video. | Text is shown for the whole video. | Teks dipaparkan sepanjang video. | El texto se muestra durante todo el vídeo. | O texto aparece durante todo o vídeo. | Le texte s'affiche pendant toute la vidéo. | Der Text wird während des gesamten Videos angezeigt.
 Tambah emoji atau foto dari galeri di atas video. | Add emoji or photos from the gallery on top of the video. | Tambah emoji atau foto dari galeri di atas video. | Añade emojis o fotos de la galería sobre el vídeo. | Adicione emojis ou fotos da galeria sobre o vídeo. | Ajoutez des emojis ou des photos de la galerie sur la vidéo. | Füge Emojis oder Fotos aus der Galerie über dem Video hinzu.
+"""
+
+    private const val T1 = """
 Gerakan zoom atau geser otomatis. Terlihat di preview dan hasil export. | Automatic zoom or pan movement. Visible in the preview and the exported video. | Gerakan zum atau gelongsor automatik. Kelihatan dalam pratonton dan hasil eksport. | Movimiento automático de zoom o desplazamiento. Se ve en la vista previa y en el vídeo exportado. | Movimento automático de zoom ou deslocamento. Visível na prévia e no vídeo exportado. | Mouvement automatique de zoom ou de panoramique. Visible dans l'aperçu et la vidéo exportée. | Automatische Zoom- oder Schwenkbewegung. In Vorschau und Export sichtbar.
 Teks yang tampil pada waktu tertentu (subtitle). Geser garis putih ke posisi awal, lalu tambahkan. | Text shown at a specific time (subtitles). Move the white line to the start position, then add it. | Teks yang dipaparkan pada masa tertentu (sarikata). Seret garis putih ke kedudukan mula, kemudian tambah. | Texto que aparece en un momento concreto (subtítulos). Mueve la línea blanca al inicio y añádelo. | Texto exibido em um momento específico (legendas). Mova a linha branca até o início e adicione. | Texte affiché à un moment précis (sous-titres). Placez la ligne blanche au début, puis ajoutez-le. | Text, der zu einer bestimmten Zeit erscheint (Untertitel). Schiebe die weiße Linie zum Anfang und füge ihn hinzu.
 Suara asli video. Atur ke 0% untuk membisukan. | The video's original sound. Set to 0% to mute. | Bunyi asal video. Tetapkan 0% untuk menyenyapkan. | El sonido original del vídeo. Pon 0 % para silenciar. | O som original do vídeo. Defina 0% para silenciar. | Le son d'origine de la vidéo. Réglez sur 0 % pour couper le son. | Der Originalton des Videos. Auf 0 % stellen zum Stummschalten.
@@ -178,6 +181,9 @@ Batal | Cancel | Batal | Cancelar | Cancelar | Annuler | Abbrechen | キャン�
 Hapus proyek? | Delete project? | Padam projek? | ¿Eliminar proyecto? | Excluir projeto? | Supprimer le projet ? | Projekt löschen? | プロジェクトを削除しますか? | 프로젝트를 삭제할까요? | Удалить проект?
 Beranda | Home | Laman Utama | Inicio | Início | Accueil | Start | ホーム | 홈 | Главная
 Pengaturan | Settings | Tetapan | Ajustes | Configurações | Réglages | Einstellungen | 設定 | 설정 | Настройки
+"""
+
+    private const val T2 = """
 Umum | General | Umum | General | Geral | Général | Allgemein | 一般 | 일반 | Общие
 Kualitas Video Default | Default Video Quality | Kualiti Video Lalai | Calidad de vídeo predeterminada | Qualidade de vídeo padrão | Qualité vidéo par défaut | Standard-Videoqualität | デフォルトの動画品質 | 기본 영상 화질 | Качество видео по умолчанию
 Tema Aplikasi | App Theme | Tema Aplikasi | Tema de la app | Tema do app | Thème de l'appli | App-Design | アプリのテーマ | 앱 테마 | Тема приложения
@@ -239,6 +245,9 @@ Kecil Atas | Small Top | Kecil Atas | Pequeño arriba | Pequeno no topo | Petit 
 Kecerahan | Brightness | Kecerahan | Brillo | Brilho | Luminosité | Helligkeit | 明るさ | 밝기 | Яркость
 Kontras | Contrast | Kontras | Contraste | Contraste | Contraste | Kontrast | コントラスト | 대비 | Контраст
 Saturasi | Saturation | Ketepuan | Saturación | Saturação | Saturation | Sättigung | 彩度 | 채도 | Насыщенность
+"""
+
+    private const val T3 = """
 Eksposur | Exposure | Pendedahan | Exposición | Exposição | Exposition | Belichtung | 露出 | 노출 | Экспозиция
 Suhu | Temperature | Suhu | Temperatura | Temperatura | Température | Temperatur | 色温度 | 색온도 | Температура
 Rona | Tint | Rona | Matiz | Matiz | Teinte | Farbton | 色合い | 색조 | Оттенок
@@ -291,6 +300,9 @@ Filter Cerah agar video lebih hidup | Bright filter to make the video livelier |
 Montase Cepat | Quick Montage | Montaj Pantas | Montaje rápido | Montagem rápida | Montage rapide | Schnelle Montage | クイックモンタージュ | 빠른 몽타주 | Быстрый монтаж
 Pilih beberapa video, tiap video otomatis jadi potongan 1,5 detik. Tinggal ganti video. | Pick several videos; each is cut to 1.5 seconds automatically. Just swap the videos. | Pilih beberapa video, setiap video menjadi potongan 1.5 saat secara automatik. Tinggal tukar video. | Elige varios vídeos; cada uno se recorta a 1,5 segundos automáticamente. Solo cambia los vídeos. | Escolha vários vídeos; cada um é cortado automaticamente em 1,5 segundo. Basta trocar os vídeos. | Choisissez plusieurs vidéos ; chacune est coupée automatiquement à 1,5 seconde. Il suffit de changer les vidéos. | Wähle mehrere Videos; jedes wird automatisch auf 1,5 Sekunden gekürzt. Du tauschst nur die Videos aus. | 複数の動画を選ぶと、それぞれ自動で1.5秒にカットされます。動画を差し替えるだけ。 | 여러 영상을 고르면 각각 자동으로 1.5초로 잘립니다. 영상만 바꾸면 됩니다. | Выберите несколько видео — каждое автоматически обрезается до 1,5 секунды. Остаётся только заменить видео.
 Vlog Singkat | Short Vlog | Vlog Ringkas | Vlog corto | Vlog curto | Vlog court | Kurzer Vlog | ショートVlog | 짧은 브이로그 | Короткий влог
+"""
+
+    private const val T4 = """
 Tiap video otomatis jadi potongan 3 detik dalam format vertikal. | Each video is automatically cut to 3 seconds in vertical format. | Setiap video menjadi potongan 3 saat secara automatik dalam format menegak. | Cada vídeo se recorta automáticamente a 3 segundos en formato vertical. | Cada vídeo é cortado automaticamente em 3 segundos no formato vertical. | Chaque vidéo est coupée automatiquement à 3 secondes en format vertical. | Jedes Video wird automatisch auf 3 Sekunden im Hochformat gekürzt. | 各動画は縦型で自動的に3秒にカットされます。 | 각 영상이 세로 형식으로 자동으로 3초로 잘립니다. | Каждое видео автоматически обрезается до 3 секунд в вертикальном формате.
 Tambah Teks | Add Text | Tambah Teks | Añadir texto | Adicionar texto | Ajouter du texte | Text hinzufügen | テキストを追加 | 텍스트 추가 | Добавить текст
 Maksimal 5 teks | Maximum 5 texts | Maksimum 5 teks | Máximo 5 textos | Máximo 5 textos | 5 textes maximum | Maximal 5 Texte | 最大5件 | 최대 5개 | Максимум 5 текстов
@@ -345,6 +357,9 @@ Remaja | Youthful | Remaja | Juvenil | Juvenil | Jeune | Jugendlich | ヤング 
 Logam | Metal | Logam | Metal | Metal | Métal | Metall | メタル | 메탈 | Металл
 Peach | Peach | Peach | Melocotón | Pêssego | Pêche | Pfirsich | ピーチ | 피치 | Персик
 Senyap | Quiet | Senyap | Silencio | Silêncio | Calme | Leise | 静か | 고요 | Тишина
+"""
+
+    private const val T5 = """
 Hitam Putih | Black & White | Hitam Putih | Blanco y negro | Preto e branco | Noir et blanc | Schwarzweiß | 白黒 | 흑백 | Чёрно-белый
 HP Kontras | B&W Contrast | HP Kontras | B/N contraste | P&B contraste | N&B contraste | SW Kontrast | 白黒コントラスト | 흑백 대비 | Ч/б контраст
 HP Lembut | B&W Soft | HP Lembut | B/N suave | P&B suave | N&B doux | SW weich | 白黒ソフト | 흑백 부드럽게 | Ч/б мягкий
@@ -438,6 +453,9 @@ Teater | Theater | Teater | Teatro | Teatro | Théâtre | Theater | シアター
 Detektif | Detective | Detektif | Detective | Detetive | Détective | Detektiv | 探偵 | 탐정 | Детектив
 Romantis Film | Film Romance | Romantis Film | Romance de cine | Romance de cinema | Romance filmée | Filmromantik | 映画ロマンス | 영화 로맨스 | Киноромантика
 Epik | Epic | Epik | Épico | Épico | Épique | Episch | エピック | 에픽 | Эпик
+"""
+
+    private const val T6 = """
 Indie | Indie | Indie | Indie | Indie | Indé | Indie | インディー | 인디 | Инди
 Thriller | Thriller | Thriller | Thriller | Thriller | Thriller | Thriller | スリラー | 스릴러 | Триллер
 Klasik Hollywood | Classic Hollywood | Klasik Hollywood | Hollywood clásico | Hollywood clássico | Hollywood classique | Klassisches Hollywood | クラシックハリウッド | 클래식 할리우드 | Классический Голливуд
@@ -503,5 +521,8 @@ Top Harian | Daily Top | Top Harian | Top diario | Top diário | Top du jour | T
 Pilihan Editor | Editor's Pick | Pilihan Editor | Selección del editor | Escolha do editor | Choix de l'éditeur | Tipp der Redaktion | 編集部のおすすめ | 에디터 추천 | Выбор редактора
 Cerah | Bright | Cerah | Brillante | Brilhante | Lumineux | Hell | 明るい | 밝게 | Яркий
 """
+
+    private val TABLE: String = T0 + T1 + T2 + T3 + T4 + T5 + T6
+
 }
 fun tr(s: String): String = L10n.tr(s)
