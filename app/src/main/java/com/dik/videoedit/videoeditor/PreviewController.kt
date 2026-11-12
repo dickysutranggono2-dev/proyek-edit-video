@@ -44,8 +44,10 @@ class PreviewController(private val context: Context) {
 
         val fx = "${p.rotation}|${p.aspect}|${p.filter}|${p.look}|${p.lookStrength}|${p.adjust}|${p.effect}|${p.animation}|${p.outputRatio}|" +
             "${p.clips.firstOrNull()?.width}x${p.clips.firstOrNull()?.height}"
+        var effectsChanged = false
         if (fx != effectSignature) {
             // Wajib dipanggil sebelum prepare() pertama.
+            effectsChanged = effectSignature != null
             player.setVideoEffects(EffectsFactory.previewEffects(p))
             effectSignature = fx
         }
@@ -70,6 +72,10 @@ class PreviewController(private val context: Context) {
             player.setMediaItems(items, index, oldPos.coerceIn(0L, maxPos))
             player.prepare()
             clipSignature = sig
+        } else if (effectsChanged && !player.isPlaying && player.mediaItemCount > 0) {
+            // Saat dijeda, bingkai yang tampil tidak digambar ulang sendiri. Seek ke posisi yang sama
+            // memaksa bingkai diproses ulang dengan filter baru, jadi perubahan langsung terlihat.
+            player.seekTo(player.currentMediaItemIndex, player.currentPosition)
         }
 
         updateAudio(p)
