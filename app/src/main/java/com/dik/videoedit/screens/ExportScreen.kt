@@ -166,10 +166,10 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
         Text(tr("Resolusi"), fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(480, 720, 1080).forEach { r ->
+            listOf(480, 720, 1080, 2160).forEach { r ->
                 FilterChip(
                     selected = s.shortSide == r, onClick = { vm.setQuality(r) },
-                    enabled = r in s.resolutions, label = { Text("${r}p") },
+                    enabled = r in s.resolutions, label = { Text(if (r == 2160) "4K" else "${r}p") },
                 )
             }
         }

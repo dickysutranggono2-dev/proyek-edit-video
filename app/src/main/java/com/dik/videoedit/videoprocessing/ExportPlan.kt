@@ -28,7 +28,7 @@ object ExportPlan {
 
     /** Bitrate video target (bps) berdasarkan jumlah piksel dan FPS. */
     fun videoBitrate(w: Int, h: Int, fps: Int): Int =
-        (w.toLong() * h * fps * 0.09).toInt().coerceIn(600_000, 16_000_000)
+        (w.toLong() * h * fps * 0.09).toInt().coerceIn(600_000, 50_000_000)
 
     private const val AUDIO_BITRATE = 128_000
 

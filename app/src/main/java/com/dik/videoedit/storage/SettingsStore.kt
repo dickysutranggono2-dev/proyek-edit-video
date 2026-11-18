@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore by preferencesDataStore(name = "videoedit_settings")
 
 data class AppSettings(
-    /** Sisi terpendek hasil export: 480, 720, atau 1080. */
+    /** Sisi terpendek hasil export: 480, 720, 1080, atau 2160 (4K). */
     val defaultQuality: Int = 720,
     /** "light", "dark", atau "system". */
     val theme: String = "light",

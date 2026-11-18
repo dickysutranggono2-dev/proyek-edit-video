@@ -97,7 +97,7 @@ fun SettingsScreen(vm: SettingsViewModel) {
 
         SectionTitle(tr("Umum"))
         SettingsCard {
-            SettingRow(Icons.Filled.HighQuality, tr("Kualitas Video Default"), "${s.defaultQuality}p") { dialog = Dlg.QUALITY }
+            SettingRow(Icons.Filled.HighQuality, tr("Kualitas Video Default"), if (s.defaultQuality == 2160) "4K" else "${s.defaultQuality}p") { dialog = Dlg.QUALITY }
             SettingRow(
                 Icons.Filled.Palette, tr("Tema Aplikasi"),
                 tr(when (s.theme) { "dark" -> "Gelap"; "system" -> "Sistem"; else -> "Terang" }),
@@ -139,7 +139,7 @@ fun SettingsScreen(vm: SettingsViewModel) {
 
     when (dialog) {
         Dlg.QUALITY -> ChoiceDialog(
-            tr("Kualitas Video Default"), listOf(480, 720, 1080).map { "${it}p" to it },
+            tr("Kualitas Video Default"), listOf(480, 720, 1080, 2160).map { (if (it == 2160) "4K" else "${it}p") to it },
             selected = s.defaultQuality, onSelect = { vm.setQuality(it); dialog = null }, onDismiss = { dialog = null },
         )
         Dlg.THEME -> ChoiceDialog(

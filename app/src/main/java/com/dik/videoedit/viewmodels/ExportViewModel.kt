@@ -42,7 +42,7 @@ class ExportViewModel(private val c: AppContainer, private val projectId: String
         val shortSide: Int = 720,
         val fps: Int = 0,
         val removeWatermark: Boolean = com.dik.videoedit.AppInfo.UNLOCK_ALL,
-        val resolutions: List<Int> = listOf(480, 720, 1080),
+        val resolutions: List<Int> = listOf(480, 720, 1080, 2160),
         val fpsOptions: List<Int> = listOf(0),
         val sourceFps: Int = 30,
         val estimateBytes: Long = 0L,
@@ -68,7 +68,7 @@ class ExportViewModel(private val c: AppContainer, private val projectId: String
             return
         }
         val ratio = p.outputRatio
-        val resolutions = listOf(480, 720, 1080).filter { res ->
+        val resolutions = listOf(480, 720, 1080, 2160).filter { res ->
             val (w, h) = ExportPlan.outputSize(ratio, res)
             DeviceCaps.sizeSupported(w, h)
         }.ifEmpty { listOf(480) }

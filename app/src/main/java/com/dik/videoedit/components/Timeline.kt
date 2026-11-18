@@ -542,7 +542,7 @@ private fun ClipBlock(
                 .padding(horizontal = 4.dp),
         )
         if (selected) {
-            Box(Modifier.matchParentSize().border(2.dp, Color.White, shape))
+            Box(Modifier.matchParentSize().border(2.dp, TrimRed, shape))
             TrimHandle(
                 left = true,
                 onStart = onHandleStart,
@@ -599,13 +599,16 @@ private fun BoxScope.TrimHandle(
         contentAlignment = if (left) Alignment.CenterStart else Alignment.CenterEnd,
     ) {
         Box(
-            Modifier.width(14.dp).fillMaxHeight().background(Color.White, handleShape),
+            Modifier.width(14.dp).fillMaxHeight().background(TrimRed, handleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Box(Modifier.width(2.dp).height(18.dp).background(Color(0xFF9AA5B8), RoundedCornerShape(1.dp)))
+            Box(Modifier.width(2.dp).height(18.dp).background(Color.White, RoundedCornerShape(1.dp)))
         }
     }
 }
+
+/** Warna handle trim dan bingkai klip terpilih: merah agar terlihat di tema terang maupun gelap. */
+private val TrimRed = Color(0xFFE53935)
 
 // ---- blok klip audio -----------------------------------------------------------------------------
 
@@ -708,7 +711,7 @@ private fun AudioBlock(
             Text(track.name, color = Color.White, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (selected) {
-            Box(Modifier.matchParentSize().border(2.dp, Color.White, shape))
+            Box(Modifier.matchParentSize().border(2.dp, TrimRed, shape))
             TrimHandle(left = true, onStart = {}, onDrag = { onHandleDrag(true, it) }, onEnd = onHandleEnd)
             TrimHandle(left = false, onStart = {}, onDrag = { onHandleDrag(false, it) }, onEnd = onHandleEnd)
         }
