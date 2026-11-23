@@ -4,6 +4,7 @@ import com.dik.videoedit.i18n.tr
 import androidx.compose.foundation.BorderStroke
 import com.dik.videoedit.videoprocessing.LookLut
 import com.dik.videoedit.models.Looks
+import com.dik.videoedit.videoprocessing.WhisperModel
 import com.dik.videoedit.models.FilterPreset
 import com.dik.videoedit.models.CaptionStyles
 import com.dik.videoedit.models.AdjustKey
@@ -48,6 +49,8 @@ import com.dik.videoedit.components.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import com.dik.videoedit.videoeditor.formatTimeTenth
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -108,6 +111,34 @@ internal fun CropPanel(vm: EditorViewModel, project: Project) {
 }
 
 private val SPEEDS = listOf(0.25f, 0.5f, 0.75f, 1f, 1.5f, 2f, 3f)
+
+@Composable
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+internal fun CutPanel(vm: EditorViewModel, project: Project, selected: Int, onDone: () -> Unit) {
+    val clip = project.clips.getOrNull(selected) ?: return
+    val total = clip.trimmedMs.toFloat().coerceAtLeast(1f)
+    var range by remember(clip.id, clip.trimStartMs, clip.trimEndMs) { mutableStateOf(total * 0.35f..total * 0.65f) }
+    PanelTitle(tr("Buang Tengah"), tr("Geser dua ujung untuk menandai bagian yang dibuang. Sisanya tersambung lagi."))
+    androidx.compose.material3.RangeSlider(
+        value = range,
+        onValueChange = { range = it },
+        valueRange = 0f..total,
+    )
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text("${tr("Dari")} ${formatTimeTenth(range.start.toLong())}", fontSize = 12.sp)
+        Text("${tr("Buang")} ${formatTimeTenth((range.endInclusive - range.start).toLong())}", fontSize = 12.sp)
+        Text("${tr("Sampai")} ${formatTimeTenth(range.endInclusive.toLong())}", fontSize = 12.sp)
+    }
+    Spacer(Modifier.height(8.dp))
+    Button(
+        onClick = {
+            vm.cut(selected, clip.trimStartMs + range.start.toLong(), clip.trimStartMs + range.endInclusive.toLong())
+            onDone()
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text(tr("Buang bagian ini")) }
+}
 
 @Composable
 internal fun SpeedPanel(vm: EditorViewModel, project: Project, selected: Int) {
@@ -505,10 +536,48 @@ internal fun CaptionPanel(vm: EditorViewModel, project: Project, positionMs: () 
         modifier = Modifier.fillMaxWidth(),
     ) { Text(tr("Tambah di posisi sekarang")) }
     OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth()) { Text(tr("Impor keterangan (.srt / .vtt)")) }
-    Text(
-        tr("Keterangan otomatis dari suara belum tersedia karena butuh layanan online. Ketik manual, atau impor file .srt dari layanan lain."),
-        fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    Spacer(Modifier.height(12.dp))
+    Label(tr("Keterangan otomatis dari suara"))
+    val status by vm.state.collectAsState()
+    var lang by remember { mutableStateOf<String?>(null) }
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf<Pair<String?, String>>(
+            null to "Auto", "id" to "Indonesia", "en" to "English", "ms" to "Melayu", "es" to "Español",
+            "pt" to "Português", "fr" to "Français", "de" to "Deutsch", "ja" to "日本語", "ko" to "한국어", "ru" to "Русский",
+        ).forEach { (code, name) ->
+            FilterChip(selected = lang == code, onClick = { lang = code }, label = { Text(name) })
+        }
+    }
+    Spacer(Modifier.height(8.dp))
+    val running = status.captionStatus != null
+    val progress = status.modelProgress
+    if (!status.modelReady) {
+        Button(
+            onClick = { vm.downloadModel() },
+            enabled = progress == null,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                if (progress == null) "${tr("Unduh model suara")} (±${WhisperModel.TOTAL_MB} MB)"
+                else "${tr("Mengunduh model")} ${(progress * 100).toInt()}%"
+            )
+        }
+        Text(
+            tr("Hanya sekali. Setelah itu keterangan otomatis jalan di HP tanpa internet dan tanpa kunci API."),
+            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    } else {
+        Button(
+            onClick = { vm.autoCaptions(lang, style) },
+            enabled = !running,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text(status.captionStatus ?: tr("Buat keterangan otomatis")) }
+        Text(
+            tr("Diproses di HP dengan Whisper tiny, jadi cukup lambat dan hasilnya perlu dicek. Keterangan lama diganti hasil baru."),
+            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(onClick = { vm.deleteModel() }, enabled = !running) { Text(tr("Hapus model suara")) }
+    }
     if (captions.isNotEmpty()) {
         Spacer(Modifier.height(12.dp))
         Label("${tr("Daftar keterangan")} (${captions.size})")

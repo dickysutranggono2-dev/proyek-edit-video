@@ -57,15 +57,18 @@ class PreviewController(private val context: Context) {
             val oldIndex = player.currentMediaItemIndex
             val oldPos = player.currentPosition
             val items = p.clips.map { c ->
-                MediaItem.Builder()
-                    .setUri(c.uri)
-                    .setClippingConfiguration(
+                val b = MediaItem.Builder().setUri(c.uri)
+                if (c.isImage) {
+                    b.setImageDurationMs(c.trimmedMs)
+                } else {
+                    b.setClippingConfiguration(
                         MediaItem.ClippingConfiguration.Builder()
                             .setStartPositionMs(c.trimStartMs)
                             .setEndPositionMs(c.trimEndMs)
                             .build()
                     )
-                    .build()
+                }
+                b.build()
             }
             val index = oldIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0))
             val maxPos = ((p.clips.getOrNull(index)?.trimmedMs ?: 1L) - 1).coerceAtLeast(0L)
@@ -144,8 +147,9 @@ class PreviewController(private val context: Context) {
     /** Kecepatan & volume bisa berbeda tiap klip; terapkan sesuai klip yang sedang diputar. */
     fun syncClipParams() {
         val c = clips.getOrNull(player.currentMediaItemIndex) ?: return
-        if (player.playbackParameters.speed != c.speed) player.setPlaybackSpeed(c.speed)
-        if (player.volume != c.volume) player.volume = c.volume
+        if (player.playbackParameters.speed != c.playSpeed) player.setPlaybackSpeed(c.playSpeed)
+        val vol = if (c.isImage) 0f else c.volume
+        if (player.volume != vol) player.volume = vol
     }
 
     /** Saat scrub, lompat ke keyframe terdekat agar cepat; setelah selesai kembali ke seek presisi. */
@@ -158,14 +162,14 @@ class PreviewController(private val context: Context) {
         var t = 0L
         for (i in 0 until index.coerceAtMost(clips.size)) t += clips[i].effectiveMs
         val c = clips.getOrNull(index) ?: return t
-        return t + (player.currentPosition.coerceAtLeast(0L) / c.speed).toLong()
+        return t + (player.currentPosition.coerceAtLeast(0L) / c.playSpeed).toLong()
     }
 
     fun seekToGlobal(ms: Long) {
         var remaining = ms.coerceAtLeast(0L)
         for ((i, c) in clips.withIndex()) {
             if (remaining < c.effectiveMs || i == clips.lastIndex) {
-                player.seekTo(i, (remaining.coerceAtMost(c.effectiveMs) * c.speed).toLong())
+                player.seekTo(i, (remaining.coerceAtMost(c.effectiveMs) * c.playSpeed).toLong())
                 break
             }
             remaining -= c.effectiveMs

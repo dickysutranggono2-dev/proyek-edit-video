@@ -54,6 +54,7 @@ object ProjectJson {
                     put("trimEndMs", c.trimEndMs)
                     put("speed", c.speed.toDouble())
                     put("volume", c.volume.toDouble())
+                    if (c.isImage) put("image", true)
                 })
             }
         })
@@ -115,6 +116,7 @@ object ProjectJson {
                 trimEndMs = c.getLong("trimEndMs"),
                 speed = c.optDouble("speed", 1.0).toFloat(),
                 volume = c.optDouble("volume", 1.0).toFloat(),
+                isImage = c.optBoolean("image", false),
             )
         }
         val textsJson = o.optJSONArray("texts") ?: JSONArray()

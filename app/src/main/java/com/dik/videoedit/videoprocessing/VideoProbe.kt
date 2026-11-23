@@ -1,6 +1,8 @@
 package com.dik.videoedit.videoprocessing
 
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.media.ExifInterface
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
@@ -39,6 +41,40 @@ object VideoProbe {
         } finally {
             runCatching { retriever.release() }
         }
+    }
+
+    /** Panjang tampil maksimal sebuah foto saat di-trim, dan panjang awalnya (ms). */
+    const val IMAGE_MAX_MS = 15_000L
+    const val IMAGE_DEFAULT_MS = 3_000L
+
+    /** Foto sebagai klip: dibaca ukurannya saja (tanpa memuat bitmap penuh). */
+    fun probeImage(context: Context, uri: Uri): Clip? = try {
+        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+        var w = opts.outWidth
+        var h = opts.outHeight
+        if (w <= 0 || h <= 0) {
+            null
+        } else {
+            val orientation = runCatching {
+                context.contentResolver.openInputStream(uri)?.use {
+                    ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+                }
+            }.getOrNull() ?: ExifInterface.ORIENTATION_NORMAL
+            if (orientation in 5..8) { val t = w; w = h; h = t }
+            Clip(
+                uri = uri.toString(),
+                name = displayName(context, uri) ?: "foto.jpg",
+                sourceDurationMs = IMAGE_MAX_MS,
+                width = w,
+                height = h,
+                frameRate = 30,
+                trimEndMs = IMAGE_DEFAULT_MS,
+                isImage = true,
+            )
+        }
+    } catch (e: Exception) {
+        null
     }
 
     fun probeAudio(context: Context, uri: Uri): AudioTrack? {

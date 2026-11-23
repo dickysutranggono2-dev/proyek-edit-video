@@ -107,6 +107,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Video (Media3)
+    // Whisper tiny di HP (pengenalan suara untuk keterangan otomatis)
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.19.2")
     implementation("androidx.media3:media3-transformer:1.5.1")
     implementation("androidx.media3:media3-effect:1.5.1")
     implementation("androidx.media3:media3-exoplayer:1.5.1")

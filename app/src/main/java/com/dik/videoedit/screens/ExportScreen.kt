@@ -198,7 +198,7 @@ private fun SetupView(vm: ExportViewModel, s: ExportViewModel.State, premiumActi
                             Icon(Icons.Filled.Lock, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    Text(if (com.dik.videoedit.AppInfo.UNLOCK_ALL) "Tulisan \"VideoEdit\" tidak akan muncul di pojok video." else "Fitur premium. Tanpa ini, tulisan \"VideoEdit\" muncul di pojok video.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(if (com.dik.videoedit.AppInfo.UNLOCK_ALL) "Tulisan \"Mini Editor\" tidak akan muncul di pojok video." else "Fitur premium. Tanpa ini, tulisan \"Mini Editor\" muncul di pojok video.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Switch(checked = s.removeWatermark, onCheckedChange = vm::setRemoveWatermark)
             }

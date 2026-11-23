@@ -20,7 +20,8 @@ object Importer {
         var failed = 0
         for (uri in uris) {
             persistAccess(context, uri)
-            val clip = VideoProbe.probeVideo(context, uri)
+            val isImage = runCatching { context.contentResolver.getType(uri) }.getOrNull()?.startsWith("image/") == true
+            val clip = if (isImage) VideoProbe.probeImage(context, uri) else VideoProbe.probeVideo(context, uri)
             if (clip == null || clip.sourceDurationMs < MIN_DURATION_MS) failed++ else clips += clip
         }
         VideoResult(clips, failed)

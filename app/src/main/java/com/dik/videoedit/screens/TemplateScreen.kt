@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Crop169
 import androidx.compose.material.icons.filled.CropPortrait
 import androidx.compose.material.icons.filled.CropSquare
@@ -53,6 +55,10 @@ private fun iconFor(id: String): ImageVector = when (id) {
     "slowmo" -> Icons.Filled.SlowMotionVideo
     "timelapse" -> Icons.Filled.Speed
     "bright" -> Icons.Filled.FilterVintage
+    "jedag", "jedug_getar" -> Icons.Filled.Bolt
+    "slideshow", "kenangan", "senja_romantis" -> Icons.Filled.PhotoLibrary
+    "sinematik" -> Icons.Filled.Crop169
+    "estetik_mono" -> Icons.Filled.FilterVintage
     else -> Icons.Filled.Movie
 }
 
@@ -85,7 +91,7 @@ fun TemplateScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
             Surface(
                 onClick = {
                     pending = t
-                    picker.launch(arrayOf("video/*"))
+                    picker.launch(if (t.photos) arrayOf("image/*", "video/*") else arrayOf("video/*"))
                 },
                 shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 1.dp, modifier = Modifier.fillMaxWidth(),

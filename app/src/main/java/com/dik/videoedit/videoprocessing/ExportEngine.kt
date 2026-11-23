@@ -140,7 +140,29 @@ class ExportEngine(private val context: Context) {
             .build()
     }
 
+    private fun transitionEffect(p: Project, clip: Clip, index: Int, last: Int): Effect? {
+        if (p.transition == TransitionType.CUT || p.clips.size <= 1) return null
+        val durationUs = clip.effectiveMs * 1000
+        return FadeMatrix(
+            durationUs = durationUs,
+            fadeUs = min(500_000L, durationUs / 3),
+            color = if (p.transition == TransitionType.FADE_WHITE) 1f else 0f,
+            fadeIn = index > 0,
+            fadeOut = index < last,
+        )
+    }
+
     private fun editedItem(p: Project, clip: Clip, index: Int, last: Int): EditedMediaItem {
+        if (clip.isImage) {
+            // Foto: durasi diberikan langsung, tanpa audio dan tanpa pengaturan kecepatan.
+            val video = mutableListOf<Effect>()
+            transitionEffect(p, clip, index, last)?.let { video += it }
+            return EditedMediaItem.Builder(MediaItem.fromUri(clip.uri))
+                .setDurationUs(clip.trimmedMs * 1000)
+                .setFrameRate(30)
+                .setEffects(Effects(emptyList(), video))
+                .build()
+        }
         val clipping = MediaItem.ClippingConfiguration.Builder().apply {
             if (clip.trimStartMs > 0) setStartPositionMs(clip.trimStartMs)
             if (clip.trimEndMs < clip.sourceDurationMs - 50) setEndPositionMs(clip.trimEndMs)
@@ -159,16 +181,7 @@ class ExportEngine(private val context: Context) {
         if (p.noiseReduction) audio += NoiseReductionAudioProcessor()
         volumeProcessor(clip.volume)?.let { audio += it }
 
-        if (p.transition != TransitionType.CUT && p.clips.size > 1) {
-            val durationUs = clip.effectiveMs * 1000
-            video += FadeMatrix(
-                durationUs = durationUs,
-                fadeUs = min(500_000L, durationUs / 3),
-                color = if (p.transition == TransitionType.FADE_WHITE) 1f else 0f,
-                fadeIn = index > 0,
-                fadeOut = index < last,
-            )
-        }
+        transitionEffect(p, clip, index, last)?.let { video += it }
         return EditedMediaItem.Builder(media).setEffects(Effects(audio, video)).build()
     }
 
@@ -319,7 +332,7 @@ class ExportEngine(private val context: Context) {
 
     private fun watermarkOverlay(w: Int, h: Int): TextureOverlay {
         val px = min(w, h) * 0.045f
-        val s = SpannableString("VideoEdit")
+        val s = SpannableString("Mini Editor")
         val flag = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
         s.setSpan(ForegroundColorSpan(0xCCFFFFFF.toInt()), 0, s.length, flag)
         s.setSpan(AbsoluteSizeSpan(px.roundToInt(), false), 0, s.length, flag)

@@ -17,6 +17,8 @@ import com.dik.videoedit.models.AdjustKey
 import com.dik.videoedit.models.CaptionStyle
 import com.dik.videoedit.models.FilterType
 import com.dik.videoedit.storage.Srt
+import com.dik.videoedit.videoprocessing.AutoCaption
+import com.dik.videoedit.videoprocessing.WhisperModel
 import com.dik.videoedit.models.Focus
 import com.dik.videoedit.models.Project
 import com.dik.videoedit.models.SpeedRamp
@@ -50,16 +52,121 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         val canRedo: Boolean = false,
         val loading: Boolean = true,
         val busy: Boolean = false,
+        /** Pesan proses keterangan otomatis; null = tidak sedang berjalan. */
+        val captionStatus: String? = null,
+        /** Model Whisper tiny sudah diunduh ke HP. */
+        val modelReady: Boolean = false,
+        /** Kemajuan unduhan model 0..1; null = tidak sedang mengunduh. */
+        val modelProgress: Float? = null,
     )
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
 
+    /** Memecah teks panjang menjadi beberapa keterangan pendek dengan waktu sebanding panjang teks. */
+    private fun splitCue(text: String, startMs: Long, endMs: Long, style: CaptionStyle): List<TextItem> {
+        val maxChars = 34
+        val chunks = ArrayList<String>()
+        var cur = StringBuilder()
+        for (w in text.split(Regex("\\s+")).filter { it.isNotEmpty() }) {
+            if (cur.isNotEmpty() && cur.length + 1 + w.length > maxChars) {
+                chunks += cur.toString()
+                cur = StringBuilder()
+            }
+            if (cur.isNotEmpty()) cur.append(' ')
+            cur.append(w)
+        }
+        if (cur.isNotEmpty()) chunks += cur.toString()
+        if (chunks.isEmpty()) return emptyList()
+        val total = chunks.sumOf { it.length }.coerceAtLeast(1)
+        var t = startMs
+        return chunks.mapIndexed { i, chunk ->
+            val end = if (i == chunks.lastIndex) endMs else t + ((endMs - startMs) * chunk.length / total)
+            captionItem(chunk, t, end.coerceAtLeast(t + 200L), style).also { t = end }
+        }
+    }
+
+    /** Mengunduh model Whisper tiny sekali (sekitar 43 MB). */
+    fun downloadModel() {
+        if (_state.value.modelProgress != null) return
+        viewModelScope.launch {
+            _state.update { it.copy(modelProgress = 0f) }
+            try {
+                WhisperModel.download(c.context) { prog -> _state.update { st -> st.copy(modelProgress = prog) } }
+                _state.update { it.copy(modelReady = true) }
+                messages.tryEmit(tr("Model siap dipakai."))
+            } catch (e: AutoCaption.CaptionException) {
+                messages.tryEmit(tr(e.message ?: "Gagal mengunduh model."))
+            } catch (e: Exception) {
+                messages.tryEmit(tr("Gagal mengunduh model.") + " " + e.message.orEmpty())
+            } finally {
+                _state.update { it.copy(modelProgress = null) }
+            }
+        }
+    }
+
+    fun deleteModel() {
+        if (_state.value.captionStatus != null || _state.value.modelProgress != null) return
+        WhisperModel.delete(c.context)
+        _state.update { it.copy(modelReady = false) }
+    }
+
+    /** Keterangan otomatis dari suara semua klip video, dikenali langsung di HP dengan Whisper tiny. */
+    fun autoCaptions(language: String?, style: CaptionStyle) {
+        val cur = _state.value.project ?: return
+        if (_state.value.captionStatus != null) return
+        if (!_state.value.modelReady) {
+            messages.tryEmit(tr("Unduh model dulu."))
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(captionStatus = tr("Memuat model…")) }
+            try {
+                val items = ArrayList<TextItem>()
+                val starts = ProjectOps.clipStarts(cur.clips)
+                withContext(Dispatchers.Default) { AutoCaption.Recognizer(c.context) }.use { rec ->
+                    cur.clips.forEachIndexed { i, clip ->
+                        if (clip.isImage) return@forEachIndexed
+                        val segs = rec.transcribe(clip, language) { frac ->
+                            val pct = (frac * 100).toInt()
+                            _state.update { it.copy(captionStatus = "${tr("Mengenali suara")} ${i + 1}/${cur.clips.size} · $pct%") }
+                        }
+                        val clipEnd = starts[i] + clip.effectiveMs
+                        for (sg in segs) {
+                            val a = starts[i] + (sg.startMs / clip.speed).toLong()
+                            val b = (starts[i] + (sg.endMs / clip.speed).toLong()).coerceAtMost(clipEnd)
+                            if (b - a >= 100L) items += splitCue(sg.text, a, b, style)
+                        }
+                    }
+                }
+                if (items.isEmpty()) {
+                    messages.tryEmit(tr("Tidak ada ucapan yang terdeteksi."))
+                } else {
+                    val limited = items.take(MAX_CAPTIONS)
+                    commit { p -> p.copy(texts = p.texts.filterNot { it.caption } + limited) }
+                    messages.tryEmit("${limited.size} ${tr("keterangan dibuat.")}")
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: AutoCaption.CaptionException) {
+                messages.tryEmit(e.message ?: tr("Gagal membuat keterangan."))
+            } catch (e: Throwable) {
+                messages.tryEmit("${tr("Gagal membuat keterangan.")} ${e.message.orEmpty()}")
+            } finally {
+                _state.update { it.copy(captionStatus = null) }
+            }
+        }
+    }
+
     private val undoStack = ArrayDeque<Project>()
     private val redoStack = ArrayDeque<Project>()
 
     init {
+        viewModelScope.launch {
+            val ready = withContext(Dispatchers.IO) { WhisperModel.isReady(c.context) }
+            _state.update { it.copy(modelReady = ready) }
+        }
         viewModelScope.launch { load() }
     }
 
@@ -91,7 +198,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         val next = change(cur)
         if (next == cur) return
         undoStack.addLast(cur)
-        if (undoStack.size > 40) undoStack.removeFirst()
+        if (undoStack.size > 100) undoStack.removeFirst()
         redoStack.clear()
         apply(next.copy(updatedAt = System.currentTimeMillis()), selected, seek?.invoke(next))
     }
@@ -189,6 +296,16 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         commit(selected = index) { ProjectOps.split(it, index, atSourceMs) ?: it }
     }
 
+    /** Membuang bagian tengah klip [index] antara dua posisi sumber (ms). */
+    fun cut(index: Int, fromSrc: Long, toSrc: Long) {
+        val cur = _state.value.project ?: return
+        if (ProjectOps.cut(cur, index, fromSrc, toSrc) == null) {
+            messages.tryEmit(tr("Bagian yang dibuang terlalu pendek atau menghabiskan seluruh klip."))
+            return
+        }
+        commit(selected = index) { ProjectOps.cut(it, index, fromSrc, toSrc) ?: it }
+    }
+
     fun deleteSelected() {
         val cur = _state.value.project ?: return
         if (cur.clips.size <= 1) {
@@ -206,9 +323,9 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
 
     fun setSpeed(speed: Float, applyToAll: Boolean) {
         if (applyToAll) {
-            commit { p -> p.copy(clips = p.clips.map { it.copy(speed = speed) }) }
+            commit { p -> p.copy(clips = p.clips.map { if (it.isImage) it else it.copy(speed = speed) }) }
         } else {
-            commitClip { it.copy(speed = speed) }
+            commitClip { if (it.isImage) it else it.copy(speed = speed) }
         }
     }
 
@@ -345,6 +462,10 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
     fun speedRamp(ramp: SpeedRamp) {
         val cur = _state.value.project ?: return
         val i = _state.value.selected
+        if (cur.clips.getOrNull(i)?.isImage == true) {
+            messages.tryEmit(tr("Speed ramp hanya untuk video, bukan foto."))
+            return
+        }
         if (ProjectOps.speedRamp(cur, i, ramp) == null) {
             messages.tryEmit("Klip terlalu pendek untuk speed ramp (minimal ${ProjectOps.MIN_RAMP_MS / 1000} detik).")
             return

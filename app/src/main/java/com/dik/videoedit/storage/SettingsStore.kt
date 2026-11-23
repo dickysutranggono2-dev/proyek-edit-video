@@ -19,12 +19,15 @@ data class AppSettings(
     /** "light", "dark", atau "system". */
     val theme: String = "light",
     val notifications: Boolean = true,
+    /** Kunci API Groq untuk keterangan otomatis (disimpan hanya di perangkat). */
+    val groqKey: String = "",
 )
 
 class SettingsStore(private val context: Context) {
     private val kQuality = intPreferencesKey("default_quality")
     private val kTheme = stringPreferencesKey("theme")
     private val kNotif = booleanPreferencesKey("notifications")
+    private val kGroq = stringPreferencesKey("groq_key")
     private val kPremiumUntil = longPreferencesKey("premium_until")
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { it.toSettings() }
@@ -35,10 +38,12 @@ class SettingsStore(private val context: Context) {
         defaultQuality = this[kQuality] ?: 720,
         theme = this[kTheme] ?: "light",
         notifications = this[kNotif] ?: true,
+        groqKey = this[kGroq] ?: "",
     )
 
     suspend fun setDefaultQuality(v: Int) { context.dataStore.edit { it[kQuality] = v } }
     suspend fun setTheme(v: String) { context.dataStore.edit { it[kTheme] = v } }
     suspend fun setNotifications(v: Boolean) { context.dataStore.edit { it[kNotif] = v } }
+    suspend fun setGroqKey(v: String) { context.dataStore.edit { it[kGroq] = v.trim() } }
     suspend fun setPremiumUntil(v: Long) { context.dataStore.edit { it[kPremiumUntil] = v } }
 }

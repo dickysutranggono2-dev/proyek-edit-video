@@ -78,7 +78,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
                 Spacer(Modifier.height(16.dp))
                 AppLogo(92.dp)
                 Spacer(Modifier.height(10.dp))
-                Text(tr("VideoEdit"), fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
+                Text(tr("Mini Editor"), fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
                 Text(
                     tr("Edit video dengan mudah\ndan cepat!"), textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

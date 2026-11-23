@@ -105,7 +105,7 @@ class ExportViewModel(private val c: AppContainer, private val projectId: String
 
         val dir = File(c.context.cacheDir, "exports").apply { mkdirs() }
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val out = File(dir, "VideoEdit_$stamp.mp4")
+        val out = File(dir, "MiniEditor_$stamp.mp4")
         outFile = out
         _state.update { it.copy(phase = Phase.Running, progress = 0) }
 

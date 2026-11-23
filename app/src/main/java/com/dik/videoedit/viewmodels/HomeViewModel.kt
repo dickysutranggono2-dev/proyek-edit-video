@@ -55,10 +55,11 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
             }
             val clips = result.clips.map { clip ->
                 var c2 = clip
-                if (template != null && template.speed != 1f) c2 = c2.copy(speed = template.speed)
-                // Template slot: tiap video dipotong sepanjang slot (dari awal video).
+                if (template != null && template.speed != 1f && !c2.isImage) c2 = c2.copy(speed = template.speed)
+                // Template slot: tiap foto/video dipotong sepanjang slot (video dari awalnya).
                 template?.slotMs?.let { slot ->
-                    if (c2.sourceDurationMs > slot) c2 = c2.copy(trimStartMs = 0L, trimEndMs = slot)
+                    if (c2.isImage) c2 = c2.copy(trimStartMs = 0L, trimEndMs = slot)
+                    else if (c2.sourceDurationMs > slot) c2 = c2.copy(trimStartMs = 0L, trimEndMs = slot)
                 }
                 c2
             }
@@ -67,6 +68,9 @@ class HomeViewModel(private val c: AppContainer) : ViewModel() {
                 clips = clips,
                 aspect = template?.aspect ?: com.dik.videoedit.models.AspectOption.ORIGINAL,
                 filter = template?.filter ?: com.dik.videoedit.models.FilterType.NONE,
+                look = template?.look ?: "",
+                animation = template?.animation ?: com.dik.videoedit.models.AnimationType.NONE,
+                transition = template?.transition ?: com.dik.videoedit.models.TransitionType.CUT,
             )
             c.projects.save(project)
             _busy.value = false

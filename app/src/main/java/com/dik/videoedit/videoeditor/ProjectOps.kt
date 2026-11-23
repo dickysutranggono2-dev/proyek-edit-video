@@ -32,6 +32,27 @@ object ProjectOps {
         return p.copy(clips = list)
     }
 
+    /**
+     * Cut: membuang bagian tengah klip antara [fromSrc] dan [toSrc] (posisi pada video sumber).
+     * Sisa kiri dan kanan tetap sebagai dua klip. Null bila tidak ada yang tersisa atau rentang tidak valid.
+     */
+    fun cut(p: Project, index: Int, fromSrc: Long, toSrc: Long): Project? {
+        val clip = p.clips.getOrNull(index) ?: return null
+        val from = fromSrc.coerceAtLeast(clip.trimStartMs)
+        val to = toSrc.coerceAtMost(clip.trimEndMs)
+        if (to - from < 100L) return null
+        val keepLeft = from - clip.trimStartMs >= MIN_SPLIT_EDGE_MS
+        val keepRight = clip.trimEndMs - to >= MIN_SPLIT_EDGE_MS
+        if (!keepLeft && !keepRight) return null
+        val parts = ArrayList<Clip>()
+        if (keepLeft) parts += clip.copy(id = UUID.randomUUID().toString(), trimEndMs = from)
+        if (keepRight) parts += clip.copy(id = UUID.randomUUID().toString(), trimStartMs = to)
+        val list = p.clips.toMutableList()
+        list.removeAt(index)
+        list.addAll(index, parts)
+        return p.copy(clips = list)
+    }
+
     const val MIN_RAMP_MS = 3000L
 
     /**

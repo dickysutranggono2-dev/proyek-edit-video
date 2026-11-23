@@ -16,11 +16,16 @@ data class Clip(
     val trimEndMs: Long = sourceDurationMs,
     val speed: Float = 1f,
     val volume: Float = 1f,
+    /** Foto: ditampilkan selama [trimmedMs], tanpa suara, kecepatan tidak berlaku. */
+    val isImage: Boolean = false,
 ) {
     val trimmedMs: Long get() = trimEndMs - trimStartMs
 
     /** Durasi di timeline setelah kecepatan diterapkan. */
-    val effectiveMs: Long get() = (trimmedMs / speed).toLong()
+    val effectiveMs: Long get() = if (isImage) trimmedMs else (trimmedMs / speed).toLong()
+
+    /** Kecepatan yang benar-benar dipakai (foto selalu 1x). */
+    val playSpeed: Float get() = if (isImage) 1f else speed
 }
 
 enum class AspectOption(val label: String, val ratio: Float?) {
@@ -222,6 +227,11 @@ data class TemplatePreset(
     val filter: FilterType = FilterType.NONE,
     /** Bila diisi, tiap video yang dipilih dipotong menjadi slot sepanjang ini (ms), dari awal video. */
     val slotMs: Long? = null,
+    /** Template foto: menerima foto + video, lalu langsung jadi (animasi, transisi, filter sudah terpasang). */
+    val photos: Boolean = false,
+    val animation: AnimationType = AnimationType.NONE,
+    val transition: TransitionType = TransitionType.CUT,
+    val look: String = "",
 )
 
 object Templates {
@@ -233,6 +243,13 @@ object Templates {
         TemplatePreset("timelapse", "Timelapse", "Kecepatan 3x untuk perjalanan atau proses panjang", speed = 3f),
         TemplatePreset("bright", "Cerah & Segar", "Filter Cerah agar video lebih hidup", filter = FilterType.BRIGHT),
         TemplatePreset("montage", "Montase Cepat", "Pilih beberapa video, tiap video otomatis jadi potongan 1,5 detik. Tinggal ganti video.", aspect = AspectOption.PORTRAIT, filter = FilterType.BRIGHT, slotMs = 1500L),
+        TemplatePreset("jedag", "Jedag Jedug", "Pilih foto atau video, otomatis jadi video cepat tiap 0,5 detik dengan denyut zoom dan kilatan putih. Tambahkan musik 120 BPM.", aspect = AspectOption.PORTRAIT, slotMs = 500L, photos = true, animation = AnimationType.ZOOM_PULSE, transition = TransitionType.FADE_WHITE, look = "jelas"),
+        TemplatePreset("jedug_getar", "Jedug Getar", "Foto berganti tiap 0,6 detik dengan efek getar dan kilatan. Cocok untuk musik beat keras.", aspect = AspectOption.PORTRAIT, slotMs = 600L, photos = true, animation = AnimationType.SHAKE, transition = TransitionType.FADE_WHITE, look = "aksi"),
+        TemplatePreset("slideshow", "Slideshow Santai", "Foto tampil 2,5 detik dengan zoom pelan dan transisi lembut. Tinggal pilih foto.", aspect = AspectOption.PORTRAIT, slotMs = 2500L, photos = true, animation = AnimationType.SLOW_ZOOM, transition = TransitionType.FADE_BLACK, look = "segar"),
+        TemplatePreset("kenangan", "Kenangan Hangat", "Gaya retro hangat, foto 2 detik dengan gerak melayang dan transisi putih.", aspect = AspectOption.SQUARE, slotMs = 2000L, photos = true, animation = AnimationType.DRIFT, transition = TransitionType.FADE_WHITE, look = "retro70"),
+        TemplatePreset("sinematik", "Sinematik", "Rasio lebar 16:9 dengan nuansa film dingin, foto 3 detik, zoom pelan.", aspect = AspectOption.LANDSCAPE, slotMs = 3000L, photos = true, animation = AnimationType.SLOW_ZOOM, transition = TransitionType.FADE_BLACK, look = "film_dingin"),
+        TemplatePreset("estetik_mono", "Estetik Mono", "Hitam putih lembut, foto 1,5 detik dengan denyut halus.", aspect = AspectOption.PORTRAIT, slotMs = 1500L, photos = true, animation = AnimationType.ZOOM_PULSE, transition = TransitionType.FADE_BLACK, look = "hp_lembut"),
+        TemplatePreset("senja_romantis", "Senja Romantis", "Warna senja hangat, foto 2,5 detik, gerak melayang.", aspect = AspectOption.PORTRAIT, slotMs = 2500L, photos = true, animation = AnimationType.DRIFT, transition = TransitionType.FADE_WHITE, look = "senja"),
         TemplatePreset("vlog", "Vlog Singkat", "Tiap video otomatis jadi potongan 3 detik dalam format vertikal.", aspect = AspectOption.PORTRAIT, slotMs = 3000L),
     )
 }

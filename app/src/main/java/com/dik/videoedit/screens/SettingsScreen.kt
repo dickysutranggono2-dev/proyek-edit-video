@@ -65,7 +65,7 @@ import com.dik.videoedit.viewmodels.SettingsViewModel
 
 private enum class Dlg { QUALITY, THEME, LANGUAGE, PRIVACY, TERMS }
 
-private const val PRIVACY_TEXT = """VideoEdit memproses video Anda sepenuhnya di perangkat. Video, musik, dan proyek Anda tidak diunggah ke server kami.
+private const val PRIVACY_TEXT = """Mini Editor memproses video Anda sepenuhnya di perangkat. Video, musik, dan proyek Anda tidak diunggah ke server kami.
 
 Data yang disimpan di perangkat: daftar proyek (nama, pengaturan edit, dan alamat file sumber) serta pengaturan aplikasi. Anda dapat menghapusnya kapan saja dengan menghapus proyek atau data aplikasi.
 
@@ -73,12 +73,12 @@ Iklan: aplikasi menampilkan iklan reward melalui Google AdMob. AdMob dapat mengu
 
 Izin: akses internet (hanya untuk iklan), notifikasi (memberi tahu ketika export selesai), dan penyimpanan di Android 9 ke bawah (menyimpan hasil export ke galeri)."""
 
-private const val TERMS_TEXT = """Dengan memakai VideoEdit, Anda setuju bahwa:
+private const val TERMS_TEXT = """Dengan memakai Mini Editor, Anda setuju bahwa:
 
 1. Anda bertanggung jawab atas konten yang Anda edit dan bagikan, termasuk hak cipta video dan musik yang Anda gunakan.
 2. Fitur premium dibuka sementara (30 menit) setelah Anda menonton satu iklan sampai selesai.
 3. Aplikasi disediakan apa adanya. Simpan salinan video asli Anda sebelum mengedit.
-4. Hasil export disimpan di galeri pada folder Movies/VideoEdit."""
+4. Hasil export disimpan di galeri pada folder Movies/MiniEditor."""
 
 @Composable
 fun SettingsScreen(vm: SettingsViewModel) {
@@ -120,7 +120,7 @@ fun SettingsScreen(vm: SettingsViewModel) {
             SettingRow(Icons.Filled.Email, tr("Hubungi Kami"), null) {
                 val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
                     putExtra(Intent.EXTRA_EMAIL, arrayOf(AppInfo.SUPPORT_EMAIL))
-                    putExtra(Intent.EXTRA_SUBJECT, "VideoEdit v${BuildConfig.VERSION_NAME}")
+                    putExtra(Intent.EXTRA_SUBJECT, "Mini Editor v${BuildConfig.VERSION_NAME}")
                 }
                 try { context.startActivity(intent) } catch (e: Exception) {
                     Toast.makeText(context, tr("Tidak ada aplikasi email terpasang."), Toast.LENGTH_SHORT).show()

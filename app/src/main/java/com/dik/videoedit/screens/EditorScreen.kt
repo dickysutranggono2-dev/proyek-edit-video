@@ -116,7 +116,7 @@ import com.dik.videoedit.videoprocessing.TextFit
 import com.dik.videoedit.viewmodels.EditorViewModel
 import kotlinx.coroutines.delay
 
-enum class Tool { CROP, SPEED, CLIP_VOLUME, AUDIO_VOLUME, AUDIO_FADE, TEXT, CAPTION, STICKER, ANIMATION, FILTER, EFFECT }
+enum class Tool { CUT, CROP, SPEED, CLIP_VOLUME, AUDIO_VOLUME, AUDIO_FADE, TEXT, CAPTION, STICKER, ANIMATION, FILTER, EFFECT }
 
 private class ToolItem(val label: String, val icon: ImageVector, val enabled: Boolean = true, val onClick: () -> Unit)
 
@@ -214,7 +214,7 @@ private fun EditorContent(
     val pickCaptions = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.importCaptions(uri, com.dik.videoedit.models.CaptionStyles.all.first())
     }
-    val launchAddVideo = { addVideo.launch(arrayOf("video/*")) }
+    val launchAddVideo = { addVideo.launch(arrayOf("video/*", "image/*")) }
     val launchPickAudio = { pickAudio.launch(arrayOf("audio/*")) }
     // Ambil suara dari video lain di penyimpanan (seperti "Ekstrak audio" di CapCut).
     val launchPickVideoAudio = { pickAudio.launch(arrayOf("video/*")) }
@@ -339,6 +339,7 @@ private fun EditorContent(
             val items: List<ToolItem> = when (ui.focus) {
                 Focus.CLIP -> listOf(
                     ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
+                    ToolItem(tr("Buang Tengah"), Icons.Filled.ContentCut, enabled = !project.clips.getOrNull(ui.selected).let { it?.isImage == true && it.trimmedMs < 1000L }) { tool = Tool.CUT },
                     ToolItem(tr("Kecepatan"), Icons.Filled.Speed) { tool = Tool.SPEED },
                     ToolItem(tr("Volume"), Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.CLIP_VOLUME },
                     ToolItem(tr("Ekstrak Audio"), Icons.Filled.GraphicEq) { vm.extractAudio(ui.selected) },
@@ -388,6 +389,7 @@ private fun EditorContent(
         ) {
             Column(Modifier.fillMaxWidth().imePadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
                 when (t) {
+                    Tool.CUT -> CutPanel(vm, project, ui.selected, onDone = { tool = null })
                     Tool.CROP -> CropPanel(vm, project)
                     Tool.SPEED -> SpeedPanel(vm, project, ui.selected)
                     Tool.CLIP_VOLUME -> ClipVolumePanel(vm, project, ui.selected)

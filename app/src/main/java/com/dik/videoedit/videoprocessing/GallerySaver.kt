@@ -9,7 +9,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import java.io.File
 
-/** Menyalin hasil export ke galeri (Movies/VideoEdit) lewat MediaStore. */
+/** Menyalin hasil export ke galeri (Movies/MiniEditor) lewat MediaStore. */
 object GallerySaver {
 
     fun save(context: Context, source: File, displayName: String): Uri? =
@@ -25,7 +25,7 @@ object GallerySaver {
         val values = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, displayName)
             put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Video.Media.RELATIVE_PATH, "${Environment.DIRECTORY_MOVIES}/VideoEdit")
+            put(MediaStore.Video.Media.RELATIVE_PATH, "${Environment.DIRECTORY_MOVIES}/MiniEditor")
             put(MediaStore.Video.Media.IS_PENDING, 1)
         }
         val uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values) ?: return null
@@ -43,7 +43,7 @@ object GallerySaver {
 
     @Suppress("DEPRECATION")
     private fun saveLegacy(context: Context, source: File, displayName: String): Uri? {
-        val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "VideoEdit")
+        val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "MiniEditor")
         dir.mkdirs()
         val dest = File(dir, displayName)
         source.copyTo(dest, overwrite = true)
