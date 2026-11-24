@@ -251,7 +251,6 @@ fun Timeline(
             .padding(horizontal = 12.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .pointerInput(Unit) { detectTapGestures(onTap = { latestClear() }) }
             .pointerInput(Unit) {
                 var posD = 0.0
                 detectTimelineGestures(

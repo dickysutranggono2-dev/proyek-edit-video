@@ -304,7 +304,7 @@ private fun EditorContent(
                     controller.setScrubbing(false)
                     controller.seekToGlobal(posState.longValue)
                 },
-                onSelectClip = { vm.focusClip(it) },
+                onSelectClip = { i -> if (ui.focus == Focus.CLIP && ui.selected == i) vm.clearFocus() else vm.focusClip(i) },
                 onSelectAudio = { vm.focusAudio(it) },
                 onClearFocus = { vm.clearFocus() },
                 onTrimClip = { index, startMs, endMs, rightEdge -> vm.trimClip(index, startMs, endMs, rightEdge) },
@@ -336,8 +336,21 @@ private fun EditorContent(
                     if (clip != null) vm.split(idx, clip.trimStartMs + controller.player.currentPosition)
                 }
             }
+            val backTool = ToolItem(tr("Kembali"), Icons.AutoMirrored.Filled.ArrowBack) { vm.clearFocus() }
+            val generalTools = listOf(
+                ToolItem(tr("Musik"), Icons.Filled.MusicNote) { launchPickAudio() },
+                ToolItem(tr("Dari Video"), Icons.Filled.GraphicEq) { launchPickVideoAudio() },
+                ToolItem(tr("Crop"), Icons.Filled.Crop) { tool = Tool.CROP },
+                ToolItem(tr("Teks"), Icons.Filled.TextFields) { tool = Tool.TEXT },
+                ToolItem(tr("Keterangan"), Icons.Filled.Subtitles) { tool = Tool.CAPTION },
+                ToolItem(tr("Stiker"), Icons.Filled.EmojiEmotions) { tool = Tool.STICKER },
+                ToolItem(tr("Animasi"), Icons.Filled.Animation) { tool = Tool.ANIMATION },
+                ToolItem(tr("Filter"), Icons.Filled.FilterVintage) { tool = Tool.FILTER },
+                ToolItem(tr("Efek"), Icons.Filled.AutoAwesome) { tool = Tool.EFFECT },
+            )
             val items: List<ToolItem> = when (ui.focus) {
                 Focus.CLIP -> listOf(
+                    backTool,
                     ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
                     ToolItem(tr("Buang Tengah"), Icons.Filled.ContentCut, enabled = !project.clips.getOrNull(ui.selected).let { it?.isImage == true && it.trimmedMs < 1000L }) { tool = Tool.CUT },
                     ToolItem(tr("Kecepatan"), Icons.Filled.Speed) { tool = Tool.SPEED },
@@ -346,29 +359,22 @@ private fun EditorContent(
                     ToolItem(tr("Mundur"), Icons.AutoMirrored.Filled.ArrowBack, enabled = ui.selected > 0) { vm.moveSelected(-1) },
                     ToolItem(tr("Maju"), Icons.AutoMirrored.Filled.ArrowForward, enabled = ui.selected < project.clips.lastIndex) { vm.moveSelected(1) },
                     ToolItem(tr("Hapus"), Icons.Filled.Delete, enabled = project.clips.size > 1) { vm.deleteSelected() },
-                )
+                ) + generalTools
                 Focus.AUDIO -> listOf(
+                    backTool,
                     ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
                     ToolItem(tr("Volume"), Icons.AutoMirrored.Filled.VolumeUp) { tool = Tool.AUDIO_VOLUME },
                     ToolItem(tr("Fade"), Icons.Filled.Tune) { tool = Tool.AUDIO_FADE },
                     ToolItem(tr("Duplikat"), Icons.Filled.ContentCopy) { selectedAudioTrack?.let { vm.duplicateAudio(it.id) } },
                     ToolItem(tr("Hapus"), Icons.Filled.Delete) { selectedAudioTrack?.let { vm.removeAudio(it.id) } },
-                )
+                ) + generalTools
                 Focus.NONE -> listOf(
                     ToolItem(tr("Potong"), Icons.Filled.ContentCut) { vm.focusClip(playingIndex) },
                     ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
-                    ToolItem(tr("Musik"), Icons.Filled.MusicNote) { launchPickAudio() },
-                    ToolItem(tr("Dari Video"), Icons.Filled.GraphicEq) { launchPickVideoAudio() },
-                    ToolItem(tr("Crop"), Icons.Filled.Crop) { tool = Tool.CROP },
                     ToolItem(tr("Kecepatan"), Icons.Filled.Speed) { tool = Tool.SPEED },
-                    ToolItem(tr("Teks"), Icons.Filled.TextFields) { tool = Tool.TEXT },
-                    ToolItem(tr("Keterangan"), Icons.Filled.Subtitles) { tool = Tool.CAPTION },
-                    ToolItem(tr("Stiker"), Icons.Filled.EmojiEmotions) { tool = Tool.STICKER },
-                    ToolItem(tr("Animasi"), Icons.Filled.Animation) { tool = Tool.ANIMATION },
-                    ToolItem(tr("Filter"), Icons.Filled.FilterVintage) { tool = Tool.FILTER },
-                    ToolItem(tr("Efek"), Icons.Filled.AutoAwesome) { tool = Tool.EFFECT },
-                )
+                ) + generalTools
             }
+            androidx.activity.compose.BackHandler(enabled = ui.focus != Focus.NONE && tool == null) { vm.clearFocus() }
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp).padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
