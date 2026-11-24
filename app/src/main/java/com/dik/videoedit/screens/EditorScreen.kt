@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VerticalSplit
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -273,7 +274,11 @@ private fun EditorContent(
                         },
                         modifier = Modifier.matchParentSize(),
                     )
-                    TextOverlays(project, onMove = { id, x, y, sc -> vm.moveText(id, x, y, sc) }) { posState.longValue }
+                    TextOverlays(
+                        project, isPlaying,
+                        onMove = { id, x, y, sc -> vm.moveText(id, x, y, sc) },
+                        onDelete = { id -> vm.removeText(id) },
+                    ) { posState.longValue }
                     trimPreview?.let { TrimFrameOverlay(it, project.aspect != AspectOption.ORIGINAL) }
                     if (!isPlaying && trimPreview == null) {
                         Box(
@@ -492,9 +497,17 @@ private fun TrimFrameOverlay(preview: TrimPreview, crop: Boolean) {
  * rumus yang sama dengan export.
  */
 @Composable
-private fun TextOverlays(project: Project, onMove: (String, Float, Float, Float) -> Unit, positionMs: () -> Long) {
+private fun TextOverlays(
+    project: Project,
+    playing: Boolean,
+    onMove: (String, Float, Float, Float) -> Unit,
+    onDelete: (String) -> Unit,
+    positionMs: () -> Long,
+) {
     if (project.texts.isEmpty()) return
     val now = positionMs()
+    var selectedId by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(playing) { if (playing) selectedId = null }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val wPx = with(density) { maxWidth.toPx() }
@@ -505,7 +518,7 @@ private fun TextOverlays(project: Project, onMove: (String, Float, Float, Float)
                 var cx by remember(t.ax) { mutableFloatStateOf(t.ax) }
                 var cy by remember(t.ay) { mutableFloatStateOf(t.ay) }
                 var sc by remember(t.scale) { mutableFloatStateOf(t.scale) }
-                var dragging by remember { mutableStateOf(false) }
+                val selected = !t.caption && selectedId == t.id
                 // Pusat item diletakkan di koordinat NDC yang sama dengan export.
                 val place = Modifier.layout { m, c ->
                     val p = m.measure(c.copy(minWidth = 0, minHeight = 0))
@@ -516,11 +529,11 @@ private fun TextOverlays(project: Project, onMove: (String, Float, Float, Float)
                         )
                     }
                 }
-                val drag = if (t.caption) Modifier else Modifier
+                val gestures = if (t.caption) Modifier else Modifier
                     .pointerInput(t.id) {
                         awaitEachGesture {
                             awaitFirstDown(requireUnconsumed = false)
-                            dragging = true
+                            selectedId = t.id
                             var moved = false
                             do {
                                 val ev = awaitPointerEvent()
@@ -534,26 +547,39 @@ private fun TextOverlays(project: Project, onMove: (String, Float, Float, Float)
                                     ev.changes.forEach { if (it.positionChanged()) it.consume() }
                                 }
                             } while (ev.changes.any { it.pressed })
-                            dragging = false
                             if (moved) onMove(t.id, cx, cy, sc)
                         }
                     }
-                    .then(if (dragging) Modifier.border(1.dp, Color.White) else Modifier)
                 val live = t.copy(scale = sc)
                 val path = t.imagePath
-                if (path != null) {
-                    OverlayImage(path, wPx * live.imageWidthFraction, place.then(drag))
-                } else {
-                    val px = TextFit.fitPx(t.text, shortSide * live.heightFraction, wPx * 0.92f)
-                    Text(
-                        t.text,
-                        color = Color(t.color),
-                        fontSize = with(density) { px.toSp() },
-                        maxLines = 1, softWrap = false,
-                        modifier = place.then(drag)
-                            .background(Color(t.backgroundColor))
-                            .padding(horizontal = 4.dp),
-                    )
+                Box(
+                    place.then(gestures)
+                        .then(if (selected) Modifier.border(1.dp, Color.White) else Modifier),
+                ) {
+                    Box(Modifier.padding(top = if (selected) 14.dp else 0.dp, end = if (selected) 14.dp else 0.dp)) {
+                        if (path != null) {
+                            OverlayImage(path, wPx * live.imageWidthFraction, Modifier)
+                        } else {
+                            val px = TextFit.fitPx(t.text, shortSide * live.heightFraction, wPx * 0.92f)
+                            Text(
+                                t.text,
+                                color = Color(t.color),
+                                fontSize = with(density) { px.toSp() },
+                                maxLines = 1, softWrap = false,
+                                modifier = Modifier
+                                    .background(Color(t.backgroundColor))
+                                    .padding(horizontal = 4.dp),
+                            )
+                        }
+                    }
+                    if (selected) {
+                        Box(
+                            Modifier.align(Alignment.TopEnd).size(28.dp).clip(CircleShape)
+                                .background(Color(0xCC000000))
+                                .clickable { selectedId = null; onDelete(t.id) },
+                            contentAlignment = Alignment.Center,
+                        ) { Icon(Icons.Filled.Close, "Hapus", tint = Color.White, modifier = Modifier.size(16.dp)) }
+                    }
                 }
             }
         }
