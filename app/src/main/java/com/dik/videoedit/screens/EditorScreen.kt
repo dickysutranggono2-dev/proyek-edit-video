@@ -85,6 +85,19 @@ import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import kotlin.math.roundToInt
+import androidx.compose.foundation.border
 import android.net.Uri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -260,7 +273,7 @@ private fun EditorContent(
                         },
                         modifier = Modifier.matchParentSize(),
                     )
-                    TextOverlays(project) { posState.longValue }
+                    TextOverlays(project, onMove = { id, x, y, sc -> vm.moveText(id, x, y, sc) }) { posState.longValue }
                     trimPreview?.let { TrimFrameOverlay(it, project.aspect != AspectOption.ORIGINAL) }
                     if (!isPlaying && trimPreview == null) {
                         Box(
@@ -479,7 +492,7 @@ private fun TrimFrameOverlay(preview: TrimPreview, crop: Boolean) {
  * rumus yang sama dengan export.
  */
 @Composable
-private fun TextOverlays(project: Project, positionMs: () -> Long) {
+private fun TextOverlays(project: Project, onMove: (String, Float, Float, Float) -> Unit, positionMs: () -> Long) {
     if (project.texts.isEmpty()) return
     val now = positionMs()
     BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -488,21 +501,60 @@ private fun TextOverlays(project: Project, positionMs: () -> Long) {
         val hPx = with(density) { maxHeight.toPx() }
         val shortSide = minOf(wPx, hPx)
         project.texts.filter { !it.caption || (now >= it.startMs && now < it.endMs) }.forEach { t ->
-            val align = BiasAlignment(t.anchorX, -t.position.anchorY)
-            val path = t.imagePath
-            if (path != null) {
-                OverlayImage(path, wPx * t.imageWidthFraction, Modifier.align(align))
-            } else {
-                val px = TextFit.fitPx(t.text, shortSide * t.heightFraction, wPx * 0.92f)
-                Text(
-                    t.text,
-                    color = Color(t.color),
-                    fontSize = with(density) { px.toSp() },
-                    maxLines = 1, softWrap = false,
-                    modifier = Modifier.align(align)
-                        .background(Color(t.backgroundColor))
-                        .padding(horizontal = 4.dp),
-                )
+            key(t.id) {
+                var cx by remember(t.ax) { mutableFloatStateOf(t.ax) }
+                var cy by remember(t.ay) { mutableFloatStateOf(t.ay) }
+                var sc by remember(t.scale) { mutableFloatStateOf(t.scale) }
+                var dragging by remember { mutableStateOf(false) }
+                // Pusat item diletakkan di koordinat NDC yang sama dengan export.
+                val place = Modifier.layout { m, c ->
+                    val p = m.measure(c.copy(minWidth = 0, minHeight = 0))
+                    layout(c.maxWidth, c.maxHeight) {
+                        p.place(
+                            ((cx + 1f) / 2f * wPx - p.width / 2f).roundToInt(),
+                            ((1f - cy) / 2f * hPx - p.height / 2f).roundToInt(),
+                        )
+                    }
+                }
+                val drag = if (t.caption) Modifier else Modifier
+                    .pointerInput(t.id) {
+                        awaitEachGesture {
+                            awaitFirstDown(requireUnconsumed = false)
+                            dragging = true
+                            var moved = false
+                            do {
+                                val ev = awaitPointerEvent()
+                                val pan = ev.calculatePan()
+                                val zoom = ev.calculateZoom()
+                                if (pan != Offset.Zero || zoom != 1f) {
+                                    moved = true
+                                    cx = (cx + pan.x / (wPx / 2f)).coerceIn(-1f, 1f)
+                                    cy = (cy - pan.y / (hPx / 2f)).coerceIn(-1f, 1f)
+                                    sc = (sc * zoom).coerceIn(0.3f, 4f)
+                                    ev.changes.forEach { if (it.positionChanged()) it.consume() }
+                                }
+                            } while (ev.changes.any { it.pressed })
+                            dragging = false
+                            if (moved) onMove(t.id, cx, cy, sc)
+                        }
+                    }
+                    .then(if (dragging) Modifier.border(1.dp, Color.White) else Modifier)
+                val live = t.copy(scale = sc)
+                val path = t.imagePath
+                if (path != null) {
+                    OverlayImage(path, wPx * live.imageWidthFraction, place.then(drag))
+                } else {
+                    val px = TextFit.fitPx(t.text, shortSide * live.heightFraction, wPx * 0.92f)
+                    Text(
+                        t.text,
+                        color = Color(t.color),
+                        fontSize = with(density) { px.toSp() },
+                        maxLines = 1, softWrap = false,
+                        modifier = place.then(drag)
+                            .background(Color(t.backgroundColor))
+                            .padding(horizontal = 4.dp),
+                    )
+                }
             }
         }
     }

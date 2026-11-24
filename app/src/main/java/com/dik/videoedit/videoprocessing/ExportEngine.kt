@@ -254,7 +254,7 @@ class ExportEngine(private val context: Context) {
         s.setSpan(AbsoluteSizeSpan(px.roundToInt(), false), 0, s.length, flag)
         val settings = OverlaySettings.Builder()
             .setOverlayFrameAnchor(0f, 0f)
-            .setBackgroundFrameAnchor(t.anchorX, t.position.anchorY)
+            .setBackgroundFrameAnchor(t.ax, t.ay)
             .build()
         return TextOverlay.createStaticTextOverlay(s, settings)
     }
@@ -288,7 +288,7 @@ class ExportEngine(private val context: Context) {
             val first = items.first()
             val base = OverlaySettings.Builder()
                 .setOverlayFrameAnchor(0f, 0f)
-                .setBackgroundFrameAnchor(first.anchorX, first.position.anchorY)
+                .setBackgroundFrameAnchor(first.ax, first.ay)
             shown = base.build()
             hidden = base.setAlphaScale(0f).build()
         }
@@ -311,7 +311,7 @@ class ExportEngine(private val context: Context) {
         val bmp = loadOverlayBitmap(path, (w * t.imageWidthFraction).toInt().coerceAtLeast(16)) ?: return null
         val settings = OverlaySettings.Builder()
             .setOverlayFrameAnchor(0f, 0f)
-            .setBackgroundFrameAnchor(t.anchorX, t.position.anchorY)
+            .setBackgroundFrameAnchor(t.ax, t.ay)
             .build()
         return BitmapOverlay.createStaticBitmapOverlay(bmp, settings)
     }

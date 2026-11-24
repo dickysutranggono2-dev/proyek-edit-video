@@ -86,6 +86,9 @@ object ProjectJson {
                     put("size", t.size.name)
                     put("anchorX", t.anchorX.toDouble())
                     put("plain", t.plain)
+                    t.posX?.let { put("posX", it.toDouble()) }
+                    t.posY?.let { put("posY", it.toDouble()) }
+                    if (t.scale != 1f) put("scale", t.scale.toDouble())
                     t.imagePath?.let { put("imagePath", it) }
                     if (t.caption) {
                         put("caption", true)
@@ -130,6 +133,9 @@ object ProjectJson {
                 size = t.optString("size").toEnum(TextSize.MEDIUM),
                 anchorX = t.optDouble("anchorX", 0.0).toFloat(),
                 plain = t.optBoolean("plain", false),
+                posX = if (t.has("posX")) t.getDouble("posX").toFloat() else null,
+                posY = if (t.has("posY")) t.getDouble("posY").toFloat() else null,
+                scale = t.optDouble("scale", 1.0).toFloat().coerceIn(0.2f, 5f),
                 imagePath = if (t.has("imagePath")) t.getString("imagePath") else null,
                 caption = t.optBoolean("caption", false),
                 startMs = t.optLong("startMs", 0L),

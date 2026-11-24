@@ -75,7 +75,15 @@ data class TextItem(
     val bold: Boolean = false,
     /** Warna latar khusus (ARGB); null = ikuti aturan bawaan. */
     val bg: Int? = null,
+    /** Posisi bebas hasil geser langsung di video (pusat item, koordinat NDC -1..1, Y ke atas); null = pakai [anchorX]/[position]. */
+    val posX: Float? = null,
+    val posY: Float? = null,
+    /** Pengali ukuran hasil cubit dua jari di video (1 = ukuran dari pilihan Kecil/Sedang/Besar). */
+    val scale: Float = 1f,
 ) {
+    val ax: Float get() = posX ?: anchorX
+    val ay: Float get() = posY ?: position.anchorY
+
     /** Latar semi-transparan agar teks tetap terbaca di video terang/gelap. */
     val backgroundColor: Int
         get() = when {
@@ -86,7 +94,7 @@ data class TextItem(
         }
 
     /** Tinggi huruf relatif terhadap sisi terpendek frame. */
-    val heightFraction: Float get() = size.fraction * (if (plain) 2.2f else 1f)
+    val heightFraction: Float get() = size.fraction * (if (plain) 2.2f else 1f) * scale
 
     /** Lebar overlay foto relatif terhadap lebar frame. */
     val imageWidthFraction: Float
@@ -94,7 +102,7 @@ data class TextItem(
             TextSize.SMALL -> 0.2f
             TextSize.MEDIUM -> 0.35f
             TextSize.LARGE -> 0.55f
-        }
+        } * scale
 }
 
 /** Animasi otomatis sepanjang video (versi sederhana dari keyframe). */

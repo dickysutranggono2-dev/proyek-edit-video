@@ -1,6 +1,8 @@
 package com.dik.videoedit.videoeditor
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -38,47 +40,84 @@ class PreviewController(private val context: Context) {
     private var clipSignature = ""
     private var effectSignature: String? = null
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var latest: Project? = null
+    private val applyEffectsRunnable = Runnable { latest?.let { applyEffects(it) } }
+
+    private fun effectKey(p: Project) =
+        "${p.rotation}|${p.aspect}|${p.filter}|${p.look}|${p.lookStrength}|${p.adjust}|${p.effect}|${p.animation}|${p.outputRatio}|" +
+            "${p.clips.firstOrNull()?.width}x${p.clips.firstOrNull()?.height}"
+
+    private fun mediaItems(p: Project): List<MediaItem> = p.clips.map { c ->
+        val b = MediaItem.Builder().setUri(c.uri)
+        if (c.isImage) {
+            b.setImageDurationMs(c.trimmedMs)
+        } else {
+            b.setClippingConfiguration(
+                MediaItem.ClippingConfiguration.Builder()
+                    .setStartPositionMs(c.trimStartMs)
+                    .setEndPositionMs(c.trimEndMs)
+                    .build()
+            )
+        }
+        b.build()
+    }
+
+    /** Memuat ulang playlist dengan mempertahankan klip dan posisi saat ini. */
+    private fun reloadItems(p: Project) {
+        val items = mediaItems(p)
+        if (items.isEmpty()) return
+        val index = player.currentMediaItemIndex.coerceIn(0, items.size - 1)
+        val maxPos = ((p.clips.getOrNull(index)?.trimmedMs ?: 1L) - 1).coerceAtLeast(0L)
+        val pos = player.currentPosition.coerceIn(0L, maxPos)
+        player.setMediaItems(items, index, pos)
+        player.prepare()
+    }
+
+    /**
+     * Mengganti efek visual. Mengubah efek di tengah playlist yang sudah siap bisa membuat pemutar macet,
+     * jadi playlist dimuat ulang dari posisi yang sama supaya jalur efeknya dibangun bersih. Ini juga
+     * menggambar ulang bingkai saat video dijeda.
+     */
+    private fun applyEffects(p: Project) {
+        effectSignature = effectKey(p)
+        player.setVideoEffects(EffectsFactory.previewEffects(p))
+        if (player.mediaItemCount > 0) reloadItems(p)
+    }
+
+    init {
+        player.addListener(object : Player.Listener {
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                // Bila efek tidak bisa diproses, tetap putar videonya tanpa efek daripada macet.
+                latest?.let { p ->
+                    player.setVideoEffects(emptyList())
+                    effectSignature = null
+                    if (player.mediaItemCount > 0) reloadItems(p)
+                }
+            }
+        })
+    }
+
     /** Sinkronkan pemutar dengan proyek. Aman dipanggil berulang; hanya bekerja bila ada perubahan. */
     fun update(p: Project) {
         clips = p.clips
+        latest = p
 
-        val fx = "${p.rotation}|${p.aspect}|${p.filter}|${p.look}|${p.lookStrength}|${p.adjust}|${p.effect}|${p.animation}|${p.outputRatio}|" +
-            "${p.clips.firstOrNull()?.width}x${p.clips.firstOrNull()?.height}"
-        var effectsChanged = false
-        if (fx != effectSignature) {
+        val fx = effectKey(p)
+        if (effectSignature == null) {
             // Wajib dipanggil sebelum prepare() pertama.
-            effectsChanged = effectSignature != null
             player.setVideoEffects(EffectsFactory.previewEffects(p))
             effectSignature = fx
+        } else if (fx != effectSignature) {
+            // Tunda sebentar: slider penyesuaian mengubah efek berkali-kali saat digeser.
+            handler.removeCallbacks(applyEffectsRunnable)
+            handler.postDelayed(applyEffectsRunnable, 250L)
         }
 
         val sig = p.clips.joinToString("|") { "${it.id}:${it.uri}:${it.trimStartMs}:${it.trimEndMs}" }
         if (sig != clipSignature) {
-            val oldIndex = player.currentMediaItemIndex
-            val oldPos = player.currentPosition
-            val items = p.clips.map { c ->
-                val b = MediaItem.Builder().setUri(c.uri)
-                if (c.isImage) {
-                    b.setImageDurationMs(c.trimmedMs)
-                } else {
-                    b.setClippingConfiguration(
-                        MediaItem.ClippingConfiguration.Builder()
-                            .setStartPositionMs(c.trimStartMs)
-                            .setEndPositionMs(c.trimEndMs)
-                            .build()
-                    )
-                }
-                b.build()
-            }
-            val index = oldIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0))
-            val maxPos = ((p.clips.getOrNull(index)?.trimmedMs ?: 1L) - 1).coerceAtLeast(0L)
-            player.setMediaItems(items, index, oldPos.coerceIn(0L, maxPos))
-            player.prepare()
+            reloadItems(p)
             clipSignature = sig
-        } else if (effectsChanged && !player.isPlaying && player.mediaItemCount > 0) {
-            // Saat dijeda, bingkai yang tampil tidak digambar ulang sendiri. Seek ke posisi yang sama
-            // memaksa bingkai diproses ulang dengan filter baru, jadi perubahan langsung terlihat.
-            player.seekTo(player.currentMediaItemIndex, player.currentPosition)
         }
 
         updateAudio(p)
@@ -195,6 +234,7 @@ class PreviewController(private val context: Context) {
     }
 
     fun release() {
+        handler.removeCallbacks(applyEffectsRunnable)
         player.release()
         audioPlayers.values.forEach { it.player.release() }
         audioPlayers.clear()

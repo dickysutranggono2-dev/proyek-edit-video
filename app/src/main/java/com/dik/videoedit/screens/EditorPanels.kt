@@ -312,7 +312,7 @@ internal fun StickerPanel(vm: EditorViewModel, project: Project, onPickImage: ()
     val items = project.texts.filter { it.plain }
     val full = project.texts.count { !it.caption } >= 12
 
-    PanelTitle(tr("Stiker & Overlay"), tr("Tambah emoji atau foto dari galeri di atas video."))
+    PanelTitle(tr("Stiker & Overlay"), tr("Tambah emoji atau foto dari galeri di atas video. Tutup panel, lalu geser stiker di video untuk memindahkan, dan cubit dua jari untuk besar kecil."))
     Label(tr("Pilih stiker"))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         EMOJIS.forEach { e ->

@@ -521,6 +521,13 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
         const val MAX_CAPTIONS = 80
     }
 
+    /** Memindahkan teks/stiker/overlay ke posisi bebas (pusat, koordinat NDC) hasil geser di video. */
+    fun moveText(id: String, x: Float, y: Float, scale: Float) = commit { p ->
+        p.copy(texts = p.texts.map {
+            if (it.id == id) it.copy(posX = x.coerceIn(-1f, 1f), posY = y.coerceIn(-1f, 1f), scale = scale.coerceIn(0.3f, 4f)) else it
+        })
+    }
+
     fun removeText(id: String) = commit { p -> p.copy(texts = p.texts.filterNot { it.id == id }) }
 
     fun setFilter(f: FilterType) = commit { it.copy(filter = f) }

@@ -188,6 +188,18 @@ object AutoCaption {
             }
         }
 
+        /**
+         * Whisper menulis suara non-ucapan (musik, tepuk tangan, noise) sebagai "[Musik]", "(tepuk tangan)", "♪"
+         * atau mengarang nama. Teks yang seluruhnya diapit tanda kurung atau hanya simbol dibuang.
+         */
+        private fun isSpeech(text: String): Boolean {
+            val t = text.trim()
+            if (t.isEmpty()) return false
+            if ((t.startsWith("[") && t.endsWith("]")) || (t.startsWith("(") && t.endsWith(")"))) return false
+            if (t.none { it.isLetterOrDigit() }) return false
+            return true
+        }
+
         /** Mengurai token (dengan timestamp) menjadi segmen; waktu dalam ms relatif ke awal jendela. */
         private fun parse(seq: List<Int>, windowMs: Long): List<Seg> {
             val out = ArrayList<Seg>()
@@ -200,7 +212,7 @@ object AutoCaption {
                     else {
                         if (buf.isNotEmpty()) {
                             val text = tok.decode(buf)
-                            if (text.isNotEmpty()) out += Seg(start, maxOf(ms, start + 200L), text)
+                            if (isSpeech(text)) out += Seg(start, maxOf(ms, start + 200L), text)
                             buf.clear()
                         }
                         start = ms
@@ -210,7 +222,7 @@ object AutoCaption {
             if (buf.isNotEmpty()) {
                 val text = tok.decode(buf)
                 val s = if (start < 0) 0L else start
-                if (text.isNotEmpty()) out += Seg(s, maxOf(windowMs, s + 500L), text)
+                if (isSpeech(text)) out += Seg(s, maxOf(windowMs, s + 500L), text)
             }
             return out
         }
