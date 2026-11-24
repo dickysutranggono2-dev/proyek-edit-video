@@ -111,8 +111,6 @@ internal fun CropPanel(vm: EditorViewModel, project: Project) {
 }
 
 private val SPEEDS = listOf(0.25f, 0.5f, 0.75f, 1f, 1.5f, 2f, 3f)
-
-@Composable
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 internal fun CutPanel(vm: EditorViewModel, project: Project, selected: Int, onDone: () -> Unit) {
