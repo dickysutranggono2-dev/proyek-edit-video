@@ -64,8 +64,8 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
     var renaming by remember { mutableStateOf<Project?>(null) }
     var deleting by remember { mutableStateOf<Project?>(null) }
 
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        vm.createProject(uris, null, onOpenProject)
+    val openPicker = com.dik.videoedit.components.rememberMediaPicker { uris ->
+        if (uris.isNotEmpty()) vm.createProject(uris, null, onOpenProject)
     }
 
     LazyColumn(
@@ -86,7 +86,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
                 Spacer(Modifier.height(22.dp))
                 PrimaryButton(
                     "Proyek Baru", icon = Icons.Filled.Add,
-                    onClick = { picker.launch(arrayOf("video/*")) },
+                    onClick = { openPicker() },
                 )
                 Spacer(Modifier.height(22.dp))
             }

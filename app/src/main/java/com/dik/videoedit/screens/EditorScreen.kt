@@ -216,7 +216,7 @@ private fun EditorContent(
 
     var tool by remember { mutableStateOf<Tool?>(null) }
 
-    val addVideo = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+    val addVideo = com.dik.videoedit.components.rememberMediaPicker { uris ->
         if (uris.isNotEmpty()) vm.addClips(uris)
     }
     val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -228,7 +228,7 @@ private fun EditorContent(
     val pickCaptions = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.importCaptions(uri, com.dik.videoedit.models.CaptionStyles.all.first())
     }
-    val launchAddVideo = { addVideo.launch(arrayOf("video/*", "image/*")) }
+    val launchAddVideo = { addVideo() }
     val launchPickAudio = { pickAudio.launch(arrayOf("audio/*")) }
     // Ambil suara dari video lain di penyimpanan (seperti "Ekstrak audio" di CapCut).
     val launchPickVideoAudio = { pickAudio.launch(arrayOf("video/*")) }

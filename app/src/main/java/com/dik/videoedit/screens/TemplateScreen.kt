@@ -66,10 +66,10 @@ private fun iconFor(id: String): ImageVector = when (id) {
 @Composable
 fun TemplateScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
     var pending by remember { mutableStateOf<TemplatePreset?>(null) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+    val openPicker = com.dik.videoedit.components.rememberMediaPicker { uris ->
         val t = pending
         pending = null
-        vm.createProject(uris, t, onOpenProject)
+        if (uris.isNotEmpty()) vm.createProject(uris, t, onOpenProject)
     }
 
     LazyColumn(
@@ -91,7 +91,7 @@ fun TemplateScreen(vm: HomeViewModel, onOpenProject: (String) -> Unit) {
             Surface(
                 onClick = {
                     pending = t
-                    picker.launch(if (t.photos) arrayOf("image/*", "video/*") else arrayOf("video/*"))
+                    openPicker()
                 },
                 shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 1.dp, modifier = Modifier.fillMaxWidth(),

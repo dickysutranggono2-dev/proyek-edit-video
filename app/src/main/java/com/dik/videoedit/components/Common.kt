@@ -58,17 +58,11 @@ fun Context.findActivity(): Activity? {
 
 @Composable
 fun AppLogo(size: Dp = 88.dp) {
-    Canvas(Modifier.size(size)) {
-        val s = this.size.minDimension
-        drawRoundRect(Blue, size = Size(s, s), cornerRadius = CornerRadius(s * 0.27f))
-        val play = Path().apply {
-            moveTo(s * 0.37f, s * 0.27f)
-            lineTo(s * 0.37f, s * 0.73f)
-            lineTo(s * 0.75f, s * 0.50f)
-            close()
-        }
-        drawPath(play, Color.White)
-    }
+    androidx.compose.foundation.Image(
+        painter = androidx.compose.ui.res.painterResource(com.dik.videoedit.R.drawable.ic_app_logo),
+        contentDescription = "Mini Editor",
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
