@@ -219,7 +219,7 @@ data class Project(
     val outputRatio: Float
         get() {
             aspect.ratio?.let { return it }
-            val c = clips.firstOrNull() ?: return 16f / 9f
+            val c = clips.firstOrNull() ?: return 9f / 16f
             val r = c.width.toFloat() / c.height.coerceAtLeast(1)
             return if (rotation % 180 != 0) 1f / r else r
         }

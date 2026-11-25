@@ -77,7 +77,7 @@ object ProjectOps {
     }
 
     fun delete(p: Project, index: Int): Project =
-        if (p.clips.size <= 1) p else p.copy(clips = p.clips.filterIndexed { i, _ -> i != index })
+        p.copy(clips = p.clips.filterIndexed { i, _ -> i != index })
 
     fun move(p: Project, index: Int, delta: Int): Project {
         val target = index + delta

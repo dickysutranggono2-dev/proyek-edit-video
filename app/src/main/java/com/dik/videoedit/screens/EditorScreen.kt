@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VerticalSplit
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -148,7 +149,7 @@ fun EditorScreen(projectId: String, onBack: () -> Unit, onExport: () -> Unit) {
     val project = ui.project
     when {
         ui.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        project == null || project.clips.isEmpty() -> Column(
+        project == null -> Column(
             Modifier.fillMaxSize().padding(32.dp),
             verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -248,6 +249,7 @@ private fun EditorContent(
                 Spacer(Modifier.weight(1f))
                 Button(
                     onClick = { controller.pause(); onExport() },
+                    enabled = project.clips.isNotEmpty(),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.height(40.dp),
                 ) { Text(tr("Export"), fontWeight = FontWeight.SemiBold) }
@@ -366,7 +368,10 @@ private fun EditorContent(
                 ToolItem(tr("Filter"), Icons.Filled.FilterVintage) { tool = Tool.FILTER },
                 ToolItem(tr("Efek"), Icons.Filled.AutoAwesome) { tool = Tool.EFFECT },
             )
-            val items: List<ToolItem> = when (ui.focus) {
+            val items: List<ToolItem> = if (project.clips.isEmpty()) listOf(
+                // Proyek kosong (seperti CapCut setelah klip dihapus): pengguna sendiri menekan tambah.
+                ToolItem(tr("Tambah Video"), Icons.Filled.Add) { launchAddVideo() },
+            ) else when (ui.focus) {
                 Focus.CLIP -> listOf(
                     backTool,
                     ToolItem(tr("Pisah"), Icons.Filled.VerticalSplit, onClick = splitNow),
@@ -376,7 +381,7 @@ private fun EditorContent(
                     ToolItem(tr("Ekstrak Audio"), Icons.Filled.GraphicEq) { vm.extractAudio(ui.selected) },
                     ToolItem(tr("Mundur"), Icons.AutoMirrored.Filled.ArrowBack, enabled = ui.selected > 0) { vm.moveSelected(-1) },
                     ToolItem(tr("Maju"), Icons.AutoMirrored.Filled.ArrowForward, enabled = ui.selected < project.clips.lastIndex) { vm.moveSelected(1) },
-                    ToolItem(tr("Hapus"), Icons.Filled.Delete, enabled = project.clips.size > 1) { vm.deleteSelected() },
+                    ToolItem(tr("Hapus"), Icons.Filled.Delete) { vm.deleteSelected() },
                 ) + generalTools
                 Focus.AUDIO -> listOf(
                     backTool,

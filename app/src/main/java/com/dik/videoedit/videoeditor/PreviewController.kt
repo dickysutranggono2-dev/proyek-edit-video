@@ -66,7 +66,10 @@ class PreviewController(private val context: Context) {
     /** Memuat ulang playlist dengan mempertahankan klip dan posisi saat ini. */
     private fun reloadItems(p: Project) {
         val items = mediaItems(p)
-        if (items.isEmpty()) return
+        if (items.isEmpty()) {
+            player.clearMediaItems()
+            return
+        }
         val index = player.currentMediaItemIndex.coerceIn(0, items.size - 1)
         val maxPos = ((p.clips.getOrNull(index)?.trimmedMs ?: 1L) - 1).coerceAtLeast(0L)
         val pos = player.currentPosition.coerceIn(0L, maxPos)

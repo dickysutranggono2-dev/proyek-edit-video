@@ -184,7 +184,13 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             val lost = (p.clips.size - readable.size) + (p.audio.size - readableAudio.size)
             messages.tryEmit("$lost file sumber (video/audio) tidak dapat dibaca dan dilepas dari proyek.")
         }
-        _state.update { it.copy(project = fixed, loading = false) }
+        // Proyek yang punya klip tapi semuanya tak terbaca dianggap gagal dibuka; proyek kosong (semua klip
+        // sengaja dihapus) boleh dibuka seperti biasa.
+        if (p.clips.isNotEmpty() && fixed.clips.isEmpty()) {
+            _state.update { it.copy(project = null, loading = false) }
+        } else {
+            _state.update { it.copy(project = fixed, loading = false) }
+        }
     }
 
     // ---- infrastruktur ---------------------------------------------------------------------
@@ -209,7 +215,7 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             it.copy(
                 project = p,
                 selected = (selected ?: it.selected).coerceIn(0, (p.clips.size - 1).coerceAtLeast(0)),
-                focus = if (it.focus == Focus.AUDIO && !audioOk) Focus.NONE else it.focus,
+                focus = if ((it.focus == Focus.AUDIO && !audioOk) || (it.focus == Focus.CLIP && p.clips.isEmpty())) Focus.NONE else it.focus,
                 selectedAudio = if (audioOk) it.selectedAudio else null,
                 pendingSeekMs = seekMs ?: it.pendingSeekMs,
                 canUndo = undoStack.isNotEmpty(),
@@ -308,10 +314,6 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
 
     fun deleteSelected() {
         val cur = _state.value.project ?: return
-        if (cur.clips.size <= 1) {
-            messages.tryEmit(tr("Proyek harus memiliki minimal satu klip."))
-            return
-        }
         val i = _state.value.selected
         commit(selected = (i - 1).coerceAtLeast(0)) { ProjectOps.delete(it, i) }
     }
@@ -340,6 +342,26 @@ class EditorViewModel(private val c: AppContainer, private val projectId: String
             if (result.failed > 0) messages.tryEmit(Importer.failedMessage(result.failed))
             if (result.clips.isNotEmpty()) {
                 commit(selected = before) { it.copy(clips = it.clips + result.clips) }
+            }
+        }
+    }
+
+    /** Mengganti klip [index] dengan video/foto baru (dipakai saat satu-satunya klip dihapus). */
+    fun replaceClip(index: Int, uris: List<Uri>) {
+        viewModelScope.launch {
+            _state.update { it.copy(busy = true) }
+            val result = Importer.importVideos(c.context, uris)
+            _state.update { it.copy(busy = false) }
+            if (result.failed > 0) messages.tryEmit(Importer.failedMessage(result.failed))
+            if (result.clips.isNotEmpty()) {
+                commit(selected = index) { p ->
+                    val l = p.clips.toMutableList()
+                    if (index in l.indices) {
+                        l.removeAt(index)
+                        l.addAll(index, result.clips)
+                    } else l.addAll(result.clips)
+                    p.copy(clips = l)
+                }
             }
         }
     }
